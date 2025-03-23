@@ -31,7 +31,7 @@ exports.handler = async function(event, context) {
 
   try {
     // Check both possible API key environment variable names
-    const apiKey = process.env.QROQ_API_KEY || process.env.GROQ_API_KEY;
+    const apiKey = process.env.GROQ_API_KEY || process.env.QROQ_API_KEY;
     
     // Debug logging for API key (safely shows just the first 4 characters)
     console.log('API Key configured:', apiKey ? `Yes (first 4 chars: ${apiKey.substring(0, 4)})` : 'No');
@@ -42,7 +42,7 @@ exports.handler = async function(event, context) {
         statusCode: 500,
         body: JSON.stringify({ 
           error: 'API key not configured',
-          message: 'Please set QROQ_API_KEY or GROQ_API_KEY in your Netlify environment variables'
+          message: 'Please set GROQ_API_KEY in your Netlify environment variables'
         }),
         headers: { 
           'Content-Type': 'application/json',
@@ -55,18 +55,43 @@ exports.handler = async function(event, context) {
     const requestBody = JSON.parse(event.body);
     console.log('Request received for model:', requestBody.model);
     
-    // UPDATED: Check if token limit is set and warn if very high
+    // Define models that match exactly with your HTML interface
+    const INTERFACE_MODELS = [
+      'qwen-2.5-coder-32b',
+      'llama-3.3-70b-versatile',
+      'mixtral-8x7b-32768',
+      'qwen-qwq-32b',
+      'llama-3.2-90b-vision-preview'
+    ];
+    
+    // Check if we need to map the model name for Groq API
+    const MODEL_MAP = {
+      'qwen-2.5-coder-32b': 'llama-3-70b-chat', // Fallback mapping
+      'llama-3.3-70b-versatile': 'llama-3-70b-chat',
+      'mixtral-8x7b-32768': 'mixtral-8x7b-32768',
+      'qwen-qwq-32b': 'llama-3-70b-chat',  // Fallback mapping
+      'llama-3.2-90b-vision-preview': 'llama-3-70b-chat'  // Fallback mapping
+    };
+    
+    // If model is in our interface but needs mapping to actual Groq model
+    if (INTERFACE_MODELS.includes(requestBody.model) && MODEL_MAP[requestBody.model]) {
+      console.log(`Mapping interface model "${requestBody.model}" to Groq API model "${MODEL_MAP[requestBody.model]}"`);
+      requestBody.model = MODEL_MAP[requestBody.model];
+    }
+    
+    // Check token limit settings
     if (requestBody.max_tokens && requestBody.max_tokens > 32000) {
-      console.log(`Warning: Using a very high token limit of ${requestBody.max_tokens}. Make sure your model supports this.`);
+      console.log(`Warning: Using a high token limit of ${requestBody.max_tokens}. Reducing to 32000 for better compatibility.`);
+      requestBody.max_tokens = 32000;
     }
     
-    // Set default max tokens to 128k if not specified
+    // Set reasonable default max tokens if not specified
     if (!requestBody.max_tokens) {
-      requestBody.max_tokens = 128000;
-      console.log('Setting default max_tokens to 128000');
+      requestBody.max_tokens = 4096;
+      console.log('Setting default max_tokens to 4096');
     }
     
-    // We'll use the Groq API endpoint
+    // Groq API endpoint
     const apiEndpoint = 'https://api.groq.com/openai/v1/chat/completions';
     console.log(`Using Groq API endpoint: ${apiEndpoint}`);
     
@@ -76,11 +101,17 @@ exports.handler = async function(event, context) {
     
     while (retries > 0) {
       try {
-        // UPDATED: Set up abort controller with increased timeout (180 seconds for large token limits)
+        // Set up abort controller with reasonable timeout
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 180000); // 3-minute timeout (increased from 60 seconds)
+        const timeoutId = setTimeout(() => controller.abort(), 60000); // 60-second timeout
         
-        // Make a request to the Groq API
+        // Log the full request for debugging
+        console.log('Full request payload:', JSON.stringify({
+          ...requestBody,
+          messages: requestBody.messages?.length ? `[${requestBody.messages.length} messages]` : requestBody.messages
+        }));
+        
+        // Make request to the Groq API
         console.log(`Sending request to Groq API (attempts remaining: ${retries})`);
         response = await fetch(apiEndpoint, {
           method: 'POST',
@@ -95,22 +126,22 @@ exports.handler = async function(event, context) {
         // Clear timeout
         clearTimeout(timeoutId);
         
-        // If we get a 502, retry; otherwise, break the loop
-        if (response.status === 502) {
-          console.log('Received 502 from Groq API, retrying...');
+        // Log response status for debugging
+        console.log(`Groq API response status: ${response.status}`);
+        
+        // If we get a 502/504, retry; otherwise, break the loop
+        if (response.status === 502 || response.status === 504) {
+          console.log(`Received ${response.status} from Groq API, retrying...`);
           retries--;
-          // Wait before retrying (exponential backoff)
-          await new Promise(resolve => setTimeout(resolve, (3 - retries) * 3000)); // Increased wait time
+          await new Promise(resolve => setTimeout(resolve, (3 - retries) * 3000));
         } else {
-          // For any other status (success or other errors), break the retry loop
           break;
         }
       } catch (fetchError) {
         console.error('Fetch error:', fetchError);
         retries--;
         if (retries === 0) throw fetchError;
-        // Wait before retrying
-        await new Promise(resolve => setTimeout(resolve, (3 - retries) * 3000)); // Increased wait time
+        await new Promise(resolve => setTimeout(resolve, (3 - retries) * 3000));
       }
     }
 
@@ -124,29 +155,32 @@ exports.handler = async function(event, context) {
       const errorData = await response.text();
       console.error(`Groq API error: ${response.status}`, errorData);
       
-      let errorMessage;
+      let errorMessage = '';
+      let errorDetails = {};
+      
       try {
         // Try to parse error as JSON
         const parsedError = JSON.parse(errorData);
         errorMessage = parsedError.error?.message || 'Unknown API error';
+        errorDetails = parsedError;
         
-        // Check if the error is related to token limit
         if (errorMessage.includes('token') && errorMessage.includes('limit')) {
-          errorMessage = `Token limit exceeded. The model may not support ${requestBody.max_tokens || 'the requested'} tokens. Try reducing the max_tokens value or using a different model.`;
+          errorMessage = `Token limit exceeded. Try reducing the max_tokens value or using a different model.`;
         }
       } catch {
         // If parsing fails, use the raw text
         errorMessage = errorData || `Error ${response.status}`;
       }
       
-      // Special error message for 401 errors
+      // Special error messages for common status codes
       if (response.status === 401) {
-        errorMessage = "Authentication failed. Please check your API key value in Netlify environment variables.";
-      }
-      
-      // Special handling for timeouts (504)
-      if (response.status === 504) {
-        errorMessage = "Request timed out. The response may be too long for the current token limit. Try reducing the max_tokens value.";
+        errorMessage = "Authentication failed. Please check your API key in Netlify environment variables.";
+      } else if (response.status === 404) {
+        errorMessage = `Model not found. The model "${requestBody.model}" may not be available. Try one of the Groq supported models like "llama-3-70b-chat".`;
+      } else if (response.status === 429) {
+        errorMessage = "Rate limit exceeded. Please try again later.";
+      } else if (response.status === 504) {
+        errorMessage = "Request timed out. Try reducing the max_tokens value.";
       }
       
       return {
@@ -155,11 +189,11 @@ exports.handler = async function(event, context) {
           error: `Groq API error: ${response.status}`,
           message: errorMessage,
           details: {
+            original_model: requestBody.original_model || requestBody.model,
+            mapped_model: requestBody.original_model ? requestBody.model : null,
             possible_fixes: [
               "Verify the API key is correct in Netlify",
-              "Check that the model name is valid for Groq API",
-              "Ensure your Groq API subscription is active",
-              "Try reducing max_tokens if you're getting timeout or content length errors"
+              "Try using an officially supported Groq model like llama-3-70b-chat"
             ]
           }
         }),
@@ -170,7 +204,7 @@ exports.handler = async function(event, context) {
       };
     }
 
-    // Parse the response
+    // Parse and return the response
     const data = await response.json();
     console.log('Received successful response from Groq API');
     
@@ -179,7 +213,6 @@ exports.handler = async function(event, context) {
       console.log(`Token usage: prompt=${data.usage.prompt_tokens}, completion=${data.usage.completion_tokens}, total=${data.usage.total_tokens}`);
     }
 
-    // Return the response
     return {
       statusCode: 200,
       body: JSON.stringify(data),
@@ -194,7 +227,7 @@ exports.handler = async function(event, context) {
     // Special error message for abort errors (timeouts)
     let errorMessage = error.message || 'Unknown error occurred';
     if (error.name === 'AbortError' || errorMessage.includes('abort')) {
-      errorMessage = "Request timed out. Try reducing the max_tokens value or using a model that supports larger outputs.";
+      errorMessage = "Request timed out. Try reducing the max_tokens value.";
     }
     
     return {
@@ -205,11 +238,9 @@ exports.handler = async function(event, context) {
           name: error.name,
           stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
           suggestions: [
-            "Verify API key is set correctly in Netlify environment variables",
-            "Check if the model name is valid for Groq API",
-            "Try reducing max_tokens if you're getting timeout errors",
-            "Ensure network connection is stable",
-            "Verify your Groq API subscription is active"
+            "Verify GROQ_API_KEY is set correctly in Netlify environment variables",
+            "Try using 'llama-3-70b-chat' as your model - it's officially supported by Groq",
+            "Reduce max_tokens to 4096 for initial testing"
           ]
         }
       }),
