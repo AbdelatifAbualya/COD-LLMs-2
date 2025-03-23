@@ -1,6 +1,4 @@
 # Netlify configuration file
-# This file should be in the root of your project
-
 [build]
   # Directory that contains the deploy-ready HTML files and assets
   publish = "/"
@@ -11,13 +9,13 @@
 # Function settings
 [functions]
   node_bundler = "esbuild"
-  external_node_modules = ["node-fetch"]
+  external_node_modules = ["node-fetch", "abort-controller"]
   included_files = []
 
-# Set function timeout (must be in build.environment) - increased from 300 to 900 for 128k tokens  
+# Set function timeout (increased from 300 to 900 for long-running functions)
 [build.environment]
   AWS_LAMBDA_FUNCTION_TIMEOUT = "900"
-  # Note: You need to set QROQ_API_KEY or GROQ_API_KEY in the Netlify UI environment variables
+  # Note: Set GROQ_API_KEY in the Netlify UI environment variables
 
 # Set up chunked uploads for large request bodies
 [build.processing]
@@ -27,11 +25,11 @@
 [[headers]]
   for = "/*"
   [headers.values]
-    # Increase client-side timeout expectations - increased from 300 to 900
+    # Increase client-side timeout expectations
     X-Function-Timeout = "900"
     # Increase payload size limits
     X-Large-Payload = "true"
-    # Increase max request body size (for large inputs with 128k tokens)
+    # Increase max request body size
     X-Max-Request-Size = "15mb"
 
 # Properly configured redirect for single-page application
