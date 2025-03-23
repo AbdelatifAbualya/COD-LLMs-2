@@ -1,4 +1,6 @@
 // netlify/functions/api-proxy.js
+// Make sure these dependencies are installed:
+// npm install node-fetch@2 abort-controller
 const fetch = require('node-fetch');
 const { AbortController } = require('abort-controller');
 
