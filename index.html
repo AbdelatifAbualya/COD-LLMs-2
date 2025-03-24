@@ -6,7 +6,10 @@
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
   <!-- jsPDF for PDF generation -->
-  <script src="https://unpkg.com/jspdf@latest/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" 
+    onerror="console.warn('jsPDF failed to load - PDF export will be disabled');
+            document.getElementById('downloadPdfBtn')?.setAttribute('disabled', 'true');">
+  </script>
   <script>
     // Check if jsPDF loaded correctly
     window.addEventListener('load', function() {
@@ -3140,7 +3143,9 @@
     let enableWebSearch = false;
     
     // Server endpoint (Netlify serverless function)
-    const API_PROXY_URL = window.location.origin + "/.netlify/functions/api-proxy";
+    const API_PROXY_URL = window.location.origin.includes('localhost') 
+      ? '/.netlify/functions/api-proxy'  // Local development
+      : window.location.origin + '/.netlify/functions/api-proxy'; // Production
     
     // Add API status check
     async function checkApiStatus() {
@@ -6006,25 +6011,60 @@ Separate your steps with periods. Write your final answer after the #### separat
   </script>
   <form hidden="" method="post" name="feedback" data-netlify="true">
     <input type="hidden" name="form-name" value="feedback">
-    <input type="hidden" name="model">
-    <input type="hidden" name="reasoning_method">
-    <select name="feedback_type"></select>
-    <input type="radio" name="rating" value="1">
-    <input type="radio" name="rating" value="2">
-    <input type="radio" name="rating" value="3">
-    <input type="radio" name="rating" value="4">
-    <input type="radio" name="rating" value="5">
-    <textarea name="comments"></textarea>
+    <input type="hidden" id="feedbackModel" name="model" value="qwen-2.5-coder">
+    <input type="hidden" id="feedbackReasoning" name="reasoning_method" value="COD-20">
+    
+    <label for="feedbackType">Feedback Type:</label>
+    <select id="feedbackType" name="feedback_type" style="width: 100%; margin-bottom: 15px;">
+      <option value="general">General Feedback</option>
+      <option value="bug">Report a Bug</option>
+      <option value="feature">Feature Request</option>
+      <option value="model_performance">Model Performance</option>
+    </select>
+    
+    <label>How would you rate your experience?</label>
+    <div style="display: flex; justify-content: space-between; margin: 10px 0 15px 0;">
+      <label style="flex: 1; text-align: center;">
+        <input type="radio" name="rating" value="1" required>
+        <div>😞</div>
+        <div style="font-size: 0.8rem;">Poor</div>
+      </label>
+      <label style="flex: 1; text-align: center;">
+        <input type="radio" name="rating" value="2">
+        <div>😐</div>
+        <div style="font-size: 0.8rem;">Fair</div>
+      </label>
+      <label style="flex: 1; text-align: center;">
+        <input type="radio" name="rating" value="3">
+        <div>🙂</div>
+        <div style="font-size: 0.8rem;">Good</div>
+      </label>
+      <label style="flex: 1; text-align: center;">
+        <input type="radio" name="rating" value="4">
+        <div>😀</div>
+        <div style="font-size: 0.8rem;">Great</div>
+      </label>
+      <label style="flex: 1; text-align: center;">
+        <input type="radio" name="rating" value="5">
+        <div>🤩</div>
+        <div style="font-size: 0.8rem;">Excellent</div>
+      </label>
+    </div>
+    
+    <label for="feedbackComments">Comments:</label>
+    <textarea id="feedbackComments" name="comments" rows="4" required></textarea>
+    
+    <button type="submit">Submit Feedback</button>
   </form>
 
   <!-- Netlify RUM Scripts -->
-  <script defer id="netlify-rum-container" 
+  <script async 
     src="/.netlify/scripts/rum" 
     data-netlify-rum-site-id="49f667dd-e402-4fab-a0c0-7809ec627695" 
     data-netlify-deploy-branch="main" 
     data-netlify-deploy-context="production" 
     data-netlify-cwv-token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzaXRlX2lkIjoiNDlmNjY3ZGQtZTQwMi00ZmFiLWEwYzAtNzgwOWVjNjI3Njk1IiwiYWNjb3VudF9pZCI6IjY3YzU0MzUzYzc2MjdjOTUxZDZmNTU0MSIsImRlcGxveV9pZCI6IjY3ZGUzYWEyZDcxY2ZjMDAwODBlNGQzNiIsImlzc3VlciI6Im5mc2VydmVyIn0.2UCS2qUV0NlBT5zrCQVDGvzc-K1BTs57qxdP0SPJYlY"
-    onerror="console.warn('Netlify RUM script failed to load');">
+    onerror="console.warn('Failed to load Netlify RUM script')">
   </script>
 </body>
 </html>
