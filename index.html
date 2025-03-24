@@ -6,9 +6,23 @@
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
   <!-- jsPDF for PDF generation -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://unpkg.com/jspdf@latest/dist/jspdf.umd.min.js"></script>
+  <script>
+    // Check if jsPDF loaded correctly
+    window.addEventListener('load', function() {
+      if (typeof window.jspdf === 'undefined' && typeof window.jsPDF === 'undefined') {
+        console.warn('jsPDF failed to load. PDF export may not be available');
+        // Disable PDF export button
+        const pdfBtn = document.getElementById('downloadPdfBtn');
+        if (pdfBtn) {
+          pdfBtn.disabled = true;
+          pdfBtn.title = 'PDF export currently unavailable';
+        }
+      }
+    });
+  </script>
   <!-- Custom PDF Export -->
-  <script src="/js/pdf-export.js"></script>
+  <script src="/js/pdf-export.js" onerror="console.warn('PDF export module failed to load')"></script>
   <style>
     /* --------------------------------
        Global Styles
@@ -3123,10 +3137,29 @@
      ***********************/
     let MODEL_NAME = "";
     let MODEL_NAME_DISPLAY = "";
-    let enableWebSearch = false; // Add web search global variable
+    let enableWebSearch = false;
     
     // Server endpoint (Netlify serverless function)
-    const API_PROXY_URL = "/.netlify/functions/api-proxy";
+    const API_PROXY_URL = window.location.origin + "/.netlify/functions/api-proxy";
+    
+    // Add API status check
+    async function checkApiStatus() {
+      try {
+        const response = await fetch(API_PROXY_URL, {
+          method: 'OPTIONS'
+        });
+        if (!response.ok) {
+          console.warn('API endpoint not responding correctly');
+          showNotification('API service unavailable. Please try again later.');
+          return false;
+        }
+        return true;
+      } catch (error) {
+        console.error('API status check failed:', error);
+        showNotification('Cannot connect to API service. Please check your connection.');
+        return false;
+      }
+    }
     
     // Reasoning Method
     let REASONING_METHOD = "cod"; // Options: "standard", "cot", "cod"
@@ -4362,6 +4395,13 @@ A: First segment: The car travels at 60 mph for 2 hours, so the distance covered
      ***********************/
     async function sendMessage(message) {
       try {
+        // Check API status before proceeding
+        const apiAvailable = await checkApiStatus();
+        if (!apiAvailable) {
+          addMessageToCurrentThread("Error: API service is currently unavailable. Please try again later.", "bot");
+          return;
+        }
+        
         // Get web search state
         const webSearchEnabled = localStorage.getItem('webSearchEnabled') === 'true';
         
