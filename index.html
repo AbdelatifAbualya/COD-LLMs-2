@@ -3160,7 +3160,7 @@
     // Server endpoint (Netlify serverless function)
     const API_PROXY_URL = window.location.origin.includes('localhost') 
       ? '/.netlify/functions/api-proxy'  // Local development
-      : window.location.origin + '/.netlify/functions/api-proxy'; // Production
+      : window.location.origin + '/api';  // Production
     
     // Add API status check
     async function checkApiStatus() {
