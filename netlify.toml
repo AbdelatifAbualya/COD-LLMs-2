@@ -37,15 +37,7 @@
     Access-Control-Allow-Headers = "Content-Type, Authorization"
     Access-Control-Max-Age = "86400"
 
-# Properly configured redirect for single-page application
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-  force = false
-  conditions = {Role = ["anonymous"]}
-  
-# Add specific redirect for API proxy function
+# Handle API proxy requests first
 [[redirects]]
   from = "/.netlify/functions/api-proxy"
   to = "/.netlify/functions/api-proxy"
@@ -55,4 +47,10 @@
     Access-Control-Allow-Origin = "*"
     Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
     Access-Control-Allow-Headers = "Content-Type, Authorization"
-    Access-Control-Max-Age = "86400"
+
+# Handle SPA routing - must be last
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  force = true
