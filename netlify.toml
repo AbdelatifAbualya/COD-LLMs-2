@@ -15,7 +15,7 @@
 # Set function timeout (increased from 300 to 900 for long-running functions)
 [build.environment]
   AWS_LAMBDA_FUNCTION_TIMEOUT = "900"
-  # Note: Set GROQ_API_KEY in the Netlify UI environment variables
+  # Note: Set GROQ_API_KEY or QROQ_API_KEY in the Netlify UI environment variables
 
 # Set up chunked uploads for large request bodies
 [build.processing]
@@ -31,9 +31,20 @@
     X-Large-Payload = "true"
     # Increase max request body size
     X-Max-Request-Size = "15mb"
+    # Allow CORS access
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type"
 
 # Properly configured redirect for single-page application
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+  
+# Add specific redirect for API proxy function
+[[redirects]]
+  from = "/.netlify/functions/api-proxy"
+  to = "/.netlify/functions/api-proxy"
+  status = 200
+  force = true
