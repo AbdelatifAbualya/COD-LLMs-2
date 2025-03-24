@@ -4400,8 +4400,12 @@ A: First segment: The car travels at 60 mph for 2 hours, so the distance covered
     /***********************
      * Message Sending
      ***********************/
+    
     async function sendMessage(message) {
       try {
+        // Generate a new cache buster for each request
+        const cacheBuster = `?t=${Date.now()}`;
+        
         // Check API status before proceeding
         const apiAvailable = await checkApiStatus();
         if (!apiAvailable) {
@@ -6122,13 +6126,31 @@ Separate your steps with periods. Write your final answer after the #### separat
   </form>
 
   <!-- Netlify RUM Scripts -->
-  <script async 
-    src="/.netlify/scripts/rum" 
-    data-netlify-rum-site-id="49f667dd-e402-4fab-a0c0-7809ec627695" 
-    data-netlify-deploy-branch="main" 
-    data-netlify-deploy-context="production" 
-    data-netlify-cwv-token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzaXRlX2lkIjoiNDlmNjY3ZGQtZTQwMi00ZmFiLWEwYzAtNzgwOWVjNjI3Njk1IiwiYWNjb3VudF9pZCI6IjY3YzU0MzUzYzc2MjdjOTUxZDZmNTU0MSIsImRlcGxveV9pZCI6IjY3ZGUzYWEyZDcxY2ZjMDAwODBlNGQzNiIsImlzc3VlciI6Im5mc2VydmVyIn0.2UCS2qUV0NlBT5zrCQVDGvzc-K1BTs57qxdP0SPJYlY"
-    onerror="console.warn('Failed to load Netlify RUM script')">
+  <script>
+    // Initialize RUM with error handling
+    (function() {
+      try {
+        const script = document.createElement('script');
+        script.async = true;
+        script.src = '/.netlify/scripts/rum';
+        script.setAttribute('data-netlify-rum-site-id', '49f667dd-e402-4fab-a0c0-7809ec627695');
+        script.setAttribute('data-netlify-deploy-branch', 'main');
+        script.setAttribute('data-netlify-deploy-context', 'production');
+        script.setAttribute('data-netlify-cwv-token', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzaXRlX2lkIjoiNDlmNjY3ZGQtZTQwMi00ZmFiLWEwYzAtNzgwOWVjNjI3Njk1IiwiYWNjb3VudF9pZCI6IjY3YzU0MzUzYzc2MjdjOTUxZDZmNTU0MSIsImRlcGxveV9pZCI6IjY3ZGUzYWEyZDcxY2ZjMDAwODBlNGQzNiIsImlzc3VlciI6Im5mc2VydmVyIn0.2UCS2qUV0NlBT5zrCQVDGvzc-K1BTs57qxdP0SPJYlY');
+        
+        script.onerror = function(error) {
+          console.warn('Failed to load Netlify RUM script:', error);
+          // Prevent the error from affecting the main application
+          if (window.Sentry) {
+            window.Sentry.captureException(error);
+          }
+        };
+        
+        document.body.appendChild(script);
+      } catch (err) {
+        console.warn('Error initializing Netlify RUM:', err);
+      }
+    })();
   </script>
 </body>
 </html>
