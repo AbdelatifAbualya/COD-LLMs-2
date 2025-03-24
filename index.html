@@ -6,21 +6,36 @@
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
   <!-- jsPDF for PDF generation -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" 
-    onerror="console.warn('jsPDF failed to load - PDF export will be disabled');
-            document.getElementById('downloadPdfBtn')?.setAttribute('disabled', 'true');">
-  </script>
+  <script src="https://unpkg.com/jspdf@latest/dist/jspdf.umd.min.js"></script>
   <script>
     // Check if jsPDF loaded correctly
     window.addEventListener('load', function() {
       if (typeof window.jspdf === 'undefined' && typeof window.jsPDF === 'undefined') {
-        console.warn('jsPDF failed to load. PDF export may not be available');
-        // Disable PDF export button
-        const pdfBtn = document.getElementById('downloadPdfBtn');
-        if (pdfBtn) {
-          pdfBtn.disabled = true;
-          pdfBtn.title = 'PDF export currently unavailable';
-        }
+        console.warn('jsPDF failed to load from primary CDN, trying fallback...');
+        // Try fallback CDN
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+        script.onload = function() {
+          if (typeof window.jspdf !== 'undefined' || typeof window.jsPDF !== 'undefined') {
+            console.log('jsPDF loaded successfully from fallback CDN');
+          } else {
+            console.warn('jsPDF failed to load from all sources - PDF export will be disabled');
+            const pdfBtn = document.getElementById('downloadPdfBtn');
+            if (pdfBtn) {
+              pdfBtn.disabled = true;
+              pdfBtn.title = 'PDF export currently unavailable';
+            }
+          }
+        };
+        script.onerror = function() {
+          console.warn('jsPDF failed to load from all sources - PDF export will be disabled');
+          const pdfBtn = document.getElementById('downloadPdfBtn');
+          if (pdfBtn) {
+            pdfBtn.disabled = true;
+            pdfBtn.title = 'PDF export currently unavailable';
+          }
+        };
+        document.head.appendChild(script);
       }
     });
   </script>
