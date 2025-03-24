@@ -37,10 +37,10 @@
     Access-Control-Allow-Headers = "Content-Type, Authorization"
     Access-Control-Max-Age = "86400"
 
-# Handle API proxy requests first
+# Handle API proxy requests
 [[redirects]]
-  from = "/.netlify/functions/api-proxy"
-  to = "/.netlify/functions/api-proxy"
+  from = "/api/*"
+  to = "/.netlify/functions/api-proxy/:splat"
   status = 200
   force = true
   [redirects.headers]
