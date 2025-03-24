@@ -44,7 +44,7 @@ exports.handler = async function(event, context) {
         statusCode: 500,
         body: JSON.stringify({ 
           error: 'API key not configured',
-          message: 'Please set GROQ_API_KEY in your Netlify environment variables'
+          message: 'Please set GROQ_API_KEY or QROQ_API_KEY in your Netlify environment variables'
         }),
         headers: { 
           'Content-Type': 'application/json',
@@ -74,6 +74,9 @@ exports.handler = async function(event, context) {
       'qwen-qwq-32b': 'llama-3-70b-chat',  // Fallback mapping
       'llama-3.2-90b-vision-preview': 'llama-3-70b-chat'  // Fallback mapping
     };
+    
+    // Store original model for debugging
+    const originalModel = requestBody.model;
     
     // If model is in our interface but needs mapping to actual Groq model
     if (INTERFACE_MODELS.includes(requestBody.model) && MODEL_MAP[requestBody.model]) {
@@ -191,8 +194,8 @@ exports.handler = async function(event, context) {
           error: `Groq API error: ${response.status}`,
           message: errorMessage,
           details: {
-            original_model: requestBody.original_model || requestBody.model,
-            mapped_model: requestBody.original_model ? requestBody.model : null,
+            original_model: originalModel,
+            mapped_model: originalModel !== requestBody.model ? requestBody.model : null,
             possible_fixes: [
               "Verify the API key is correct in Netlify",
               "Try using an officially supported Groq model like llama-3-70b-chat"
@@ -240,7 +243,7 @@ exports.handler = async function(event, context) {
           name: error.name,
           stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
           suggestions: [
-            "Verify GROQ_API_KEY is set correctly in Netlify environment variables",
+            "Verify GROQ_API_KEY or QROQ_API_KEY is set correctly in Netlify environment variables",
             "Try using 'llama-3-70b-chat' as your model - it's officially supported by Groq",
             "Reduce max_tokens to 4096 for initial testing"
           ]
