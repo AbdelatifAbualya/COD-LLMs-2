@@ -5,6 +5,10 @@
   <title>LLM Playground (COT vs COD)</title>
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <!-- jsPDF for PDF generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- Custom PDF Export -->
+  <script src="/js/pdf-export.js"></script>
   <style>
     /* --------------------------------
        Global Styles
@@ -1013,21 +1017,25 @@
       margin-right: 8px;
       position: relative;
       cursor: pointer;
+      background-color: transparent;
+      transition: all 0.2s ease;
     }
     
     input[type="radio"]:checked {
       border-color: var(--accent-primary);
+      background-color: var(--accent-primary);
     }
     
     input[type="radio"]:checked:before {
       content: '';
       position: absolute;
-      top: 3px;
-      left: 3px;
-      width: 6px;
-      height: 6px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
-      background: var(--accent-primary);
+      background: white;
     }
     
     input[type="checkbox"] {
@@ -3997,7 +4005,8 @@ A: First segment: The car travels at 60 mph for 2 hours, so the distance covered
     function removeGlobalSelfConsistencyVars() {
       window.SELF_CONSISTENCY_ENABLED = undefined;
       window.SELF_CONSISTENCY_PATHS = undefined;
-      window.initSelfConsistency = undefined;
+      // Remove this line to keep the function:
+      // window.initSelfConsistency = undefined;
       window.saveSelfConsistencySettings = undefined;
     }
 
@@ -4352,66 +4361,57 @@ A: First segment: The car travels at 60 mph for 2 hours, so the distance covered
      * Message Sending
      ***********************/
     async function sendMessage(message) {
-      // Get web search state
-      const webSearchEnabled = localStorage.getItem('webSearchEnabled') === 'true';
-      
-      // NEW: Analyze problem complexity if enhanced reasoning is enabled
-      if (ENHANCED_REASONING_ENABLED && REASONING_ENHANCEMENT === "adaptive") {
-        analyzeProblemComplexity(message);
-      }
-      
-      // Check if there are files to be included
-      const filesToSend = [...attachedFiles];
-      
-      // Add message to thread with files
-      addMessageToCurrentThread(message, "user", false, filesToSend);
-      
-      // Clear attached files after sending
-      attachedFiles = [];
-      const attachedFilesContainer = document.getElementById('attachedFiles');
-      if (attachedFilesContainer) {
-        attachedFilesContainer.innerHTML = '';
-        attachedFilesContainer.style.display = 'none';
-      }
-      
-      if (!MODEL_NAME) {
-        const errorMsg = "Error: Please set the Model Name in the Settings.";
-        addMessageToCurrentThread(errorMsg, "bot");
-        console.error(errorMsg);
-        return;
-      }
-
-      // Parse message for word count requirements
-      const wordCountRequest = parseWordCountRequest(message);
-      
-      // Add message showing we're thinking
-      addMessageToCurrentThread("Bot is typing...", "bot", true);
-      const thread = threads.find(t => t.id === currentThreadId);
-      const placeholderIndex = thread.messages.length - 1;
-
-      // Build messages array with current settings and word count request
-      const messagesForApi = buildMessagesForChat(wordCountRequest);
-
-      // Create payload with web search parameter
-      const payload = {
-        model: MODEL_NAME,
-        max_tokens: MAX_TOKENS,
-        top_p: TOP_P,
-        temperature: TEMPERATURE,
-        messages: messagesForApi,
-        enableWebSearch: webSearchEnabled
-      };
-      
-      console.log(`Sending request with ${REASONING_METHOD} reasoning ${REASONING_METHOD === "cod" ? `(word limit: ${COD_WORD_LIMIT})` : ""}`);
-      if (wordCountRequest) {
-        console.log(`Final answer word limit requested: ${wordCountRequest} words`);
-      }
-      if (webSearchEnabled) {
-        console.log('Web search is enabled for this request');
-      }
-      console.log(`Parameters: temp=${TEMPERATURE}, top_p=${TOP_P}`);
-
       try {
+        // Get web search state
+        const webSearchEnabled = localStorage.getItem('webSearchEnabled') === 'true';
+        
+        // NEW: Analyze problem complexity if enhanced reasoning is enabled
+        if (ENHANCED_REASONING_ENABLED && REASONING_ENHANCEMENT === 'adaptive') {
+          analyzeProblemComplexity(message);
+        }
+        
+        // Check if there are files to be included
+        const filesToSend = [...attachedFiles];
+        
+        // Add message to thread with files
+        addMessageToCurrentThread(message, "user", false, filesToSend);
+        
+        // Clear attached files after sending
+        attachedFiles = [];
+        const attachedFilesContainer = document.getElementById('attachedFiles');
+        if (attachedFilesContainer) {
+          attachedFilesContainer.innerHTML = '';
+          attachedFilesContainer.style.display = 'none';
+        }
+        
+        if (!MODEL_NAME) {
+          const errorMsg = "Error: Please set the Model Name in the Settings.";
+          addMessageToCurrentThread(errorMsg, "bot");
+          console.error(errorMsg);
+          return;
+        }
+
+        // Parse message for word count requirements
+        const wordCountRequest = parseWordCountRequest(message);
+        
+        // Add message showing we're thinking
+        addMessageToCurrentThread("Bot is typing...", "bot", true);
+        const thread = threads.find(t => t.id === currentThreadId);
+        const placeholderIndex = thread.messages.length - 1;
+
+        // Build messages array with current settings and word count request
+        const messagesForApi = buildMessagesForChat(wordCountRequest);
+
+        // Create payload with web search parameter
+        const payload = {
+          model: MODEL_NAME,
+          max_tokens: MAX_TOKENS,
+          top_p: TOP_P,
+          temperature: TEMPERATURE,
+          messages: messagesForApi,
+          enableWebSearch: webSearchEnabled
+        };
+        
         // Add timestamp to URL to prevent caching
         const timestamp = new Date().getTime();
         const cacheBuster = `?t=${timestamp}`;
@@ -4420,230 +4420,107 @@ A: First segment: The car travels at 60 mph for 2 hours, so the distance covered
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout
         
-        const response = await fetch(`${API_PROXY_URL}${cacheBuster}`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(payload),
-          signal: controller.signal
-        });
-        
-        clearTimeout(timeoutId); // Clear the timeout
-        
-        if (!response.ok) {
-          console.error("API response error:", response.status, response.statusText);
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        const botReply = data.choices &&
-                         data.choices[0] &&
-                         data.choices[0].message &&
-                         data.choices[0].message.content;
-        if (botReply) {
-          const trimmedReply = botReply.trim();
-          
-          // Create response metadata
-          let reasoningInfo = REASONING_METHOD.toUpperCase();
-          if (REASONING_METHOD === "cod") {
-            reasoningInfo += `-${COD_WORD_LIMIT}`;
-          }
-          
-          // Add enhanced reasoning info if used
-          if (ENHANCED_REASONING_ENABLED && 
-              REASONING_ENHANCEMENT === "adaptive" && 
-              PROBLEM_COMPLEXITY.complexity === "complex") {
-            reasoningInfo += "-ENHANCED";
-          }
-          
-          // Add web search info if used
-          if (webSearchEnabled) {
-            reasoningInfo += "-WEB";
-          }
-          
-          // Process bot message to separate thinking and answer parts
-          const processed = processBotMessage(trimmedReply, REASONING_METHOD);
-          
-          thread.messages[placeholderIndex] = {
-            content: trimmedReply,
-            sender: "bot",
-            isPlaceholder: false,
-            timestamp: new Date(),
-            wordCount: (processed.thinkingWordCount || 0) + (processed.answerWordCount || 0),
-            reasoningMethod: reasoningInfo,
-            thinking: processed.thinking,
-            answer: processed.answer,
-            thinkingWordCount: processed.thinkingWordCount || 0,
-            answerWordCount: processed.answerWordCount || 0,
-            webSearchUsed: webSearchEnabled
-          };
-        } else {
-          thread.messages[placeholderIndex] = {
-            content: "No valid response received. Check model name and API key.",
-            sender: "bot",
-            isPlaceholder: false,
-            timestamp: new Date(),
-            wordCount: 0,
-            reasoningMethod: REASONING_METHOD.toUpperCase(),
-            thinking: null,
-            answer: null,
-            thinkingWordCount: 0,
-            answerWordCount: 0
-          };
-        }
-      } catch (error) {
-        console.error("Error communicating with API:", error);
-        
-        // Provide more detailed error message
-        let errorMessage = "Error communicating with API: " + error.message;
-        
-        // Add suggestions based on error type
-        if (error.message.includes("Failed to fetch")) {
-          errorMessage += "\n\nPossible solutions:\n1. Make sure your API key is set correctly in Netlify\n2. Check that your model name is valid\n3. Verify your internet connection";
-        } else if (error.message.includes("aborted")) {
-          errorMessage += "\n\nThe request timed out after 2 minutes. Try again or use a different model.";
-        } else if (error.message.includes("502")) {
-          errorMessage += "\n\nThe API server returned a 502 Bad Gateway error. This usually indicates a temporary server issue. Please try again in a few minutes.";
-        }
-        
-        thread.messages[placeholderIndex] = {
-          content: errorMessage,
-          sender: "bot",
-          isPlaceholder: false,
-          timestamp: new Date(),
-          wordCount: 0,
-          reasoningMethod: REASONING_METHOD.toUpperCase(),
-          thinking: null,
-          answer: null,
-          thinkingWordCount: 0,
-          answerWordCount: 0
-        };
-      }
-      renderCurrentThreadMessages();
-
-      // If self-consistency is enabled, use multiple paths
-      if (SELF_CONSISTENCY_ENABLED) {
-        addMessageToCurrentThread(`Generating ${SELF_CONSISTENCY_PATHS} reasoning paths to increase accuracy...`, "bot", true);
-        const thread = threads.find(t => t.id === currentThreadId);
-        const placeholderIndex = thread.messages.length - 1;
-        
         try {
-          // Generate multiple reasoning paths
-          const responses = [];
-          let completedPaths = 0;
+          const response = await fetch(`${API_PROXY_URL}${cacheBuster}`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload),
+            signal: controller.signal
+          });
           
-          // Update progress in placeholder
-          thread.messages[placeholderIndex] = {
-            content: `Generating ${SELF_CONSISTENCY_PATHS} reasoning paths (0/${SELF_CONSISTENCY_PATHS} complete)...`,
-            sender: "bot",
-            isPlaceholder: true,
-            timestamp: new Date()
-          };
-          renderCurrentThreadMessages();
+          clearTimeout(timeoutId); // Clear the timeout
           
-          // Generate paths sequentially
-          for (let i = 0; i < SELF_CONSISTENCY_PATHS; i++) {
-            // Update progress display
-            thread.messages[placeholderIndex] = {
-              content: `Generating ${SELF_CONSISTENCY_PATHS} reasoning paths (${completedPaths}/${SELF_CONSISTENCY_PATHS} in progress)...`,
-              sender: "bot",
-              isPlaceholder: true,
-              timestamp: new Date()
-            };
-            renderCurrentThreadMessages();
-            
-            // Add timestamp to URL to prevent caching
-            const timestamp = new Date().getTime();
-            const cacheBuster = `?t=${timestamp}&path=${i}`;
-            
-            // Create payload with slightly different temperature
-            const pathPayload = {
-              model: MODEL_NAME,
-              messages: messagesForApi,
-              temperature: TEMPERATURE + (i * 0.02), // Small temperature variation
-              max_tokens: MAX_TOKENS,
-              top_p: TOP_P
-            };
-            
-            try {
-              // Add delay between requests
-              if (i > 0) {
-                await new Promise(resolve => setTimeout(resolve, 1500));
-              }
-              
-              const response = await fetch(`${API_PROXY_URL}${cacheBuster}`, {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json"
-                },
-                body: JSON.stringify(pathPayload)
-              });
-              
-              if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-              }
-              
-              const data = await response.json();
-              const botReply = data.choices &&
-                             data.choices[0] &&
-                             data.choices[0].message &&
-                             data.choices[0].message.content;
-                             
-              if (botReply) {
-                responses.push(botReply.trim());
-                completedPaths++;
-              }
-            } catch (error) {
-              console.error(`Error in path ${i + 1}:`, error);
-              // Continue with other paths
-            }
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
           }
           
-          // Process the responses and find the most common answer
-          if (responses.length > 0) {
-            const result = processConsistencyPaths(responses);
+          const data = await response.json();
+          
+          // Check for API-specific errors
+          if (data.error) {
+            throw new Error(`API Error: ${data.error.message || 'Unknown API error'}`);
+          }
+          
+          const botReply = data.choices &&
+                           data.choices[0] &&
+                           data.choices[0].message &&
+                           data.choices[0].message.content;
+                           
+          if (botReply) {
+            const trimmedReply = botReply.trim();
             
             // Create response metadata
             let reasoningInfo = REASONING_METHOD.toUpperCase();
             if (REASONING_METHOD === "cod") {
               reasoningInfo += `-${COD_WORD_LIMIT}`;
             }
-            reasoningInfo += `-SC-${SELF_CONSISTENCY_PATHS}`;
+            
+            // Add enhanced reasoning info if used
+            if (ENHANCED_REASONING_ENABLED && 
+                REASONING_ENHANCEMENT === "adaptive" && 
+                PROBLEM_COMPLEXITY.complexity === "complex") {
+              reasoningInfo += "-ENHANCED";
+            }
+            
+            // Add web search info if used
+            if (webSearchEnabled) {
+              reasoningInfo += "-WEB";
+            }
+            
+            // Process bot message to separate thinking and answer parts
+            const processed = processBotMessage(trimmedReply, REASONING_METHOD);
             
             thread.messages[placeholderIndex] = {
-              content: result.bestResponse,
+              content: trimmedReply,
               sender: "bot",
               isPlaceholder: false,
               timestamp: new Date(),
-              wordCount: result.processedResponse.thinkingWordCount + result.processedResponse.answerWordCount,
+              wordCount: (processed.thinkingWordCount || 0) + (processed.answerWordCount || 0),
               reasoningMethod: reasoningInfo,
-              thinking: result.processedResponse.thinking,
-              answer: result.processedResponse.answer,
-              thinkingWordCount: result.processedResponse.thinkingWordCount,
-              answerWordCount: result.processedResponse.answerWordCount,
-              selfConsistency: result.agreement
+              thinking: processed.thinking,
+              answer: processed.answer,
+              thinkingWordCount: processed.thinkingWordCount || 0,
+              answerWordCount: processed.answerWordCount || 0,
+              webSearchUsed: webSearchEnabled
             };
           } else {
-            thread.messages[placeholderIndex] = {
-              content: "Error: No valid responses received from self-consistency voting.",
-              sender: "bot",
-              isPlaceholder: false,
-              timestamp: new Date()
-            };
+            throw new Error('No valid response content received from API');
           }
-        } catch (error) {
-          console.error("Error in self-consistency:", error);
+        } catch (apiError) {
+          console.error("API request error:", apiError);
+          
+          let errorMessage = "Error communicating with API: " + apiError.message;
+          
+          // Add helpful suggestions based on error type
+          if (apiError.message.includes('Failed to fetch')) {
+            errorMessage += "\n\nPossible solutions:\n1. Check your internet connection\n2. Verify the API endpoint is correct\n3. Make sure your API key is valid";
+          } else if (apiError.message.includes('aborted')) {
+            errorMessage += "\n\nThe request timed out after 2 minutes. Try:\n1. Using a shorter message\n2. Selecting a faster model\n3. Reducing the max tokens";
+          } else if (apiError.message.includes('429')) {
+            errorMessage += "\n\nRate limit exceeded. Please wait a moment before trying again.";
+          }
+          
           thread.messages[placeholderIndex] = {
-            content: "Error generating multiple reasoning paths: " + error.message,
+            content: errorMessage,
             sender: "bot",
             isPlaceholder: false,
-            timestamp: new Date()
+            timestamp: new Date(),
+            wordCount: 0,
+            reasoningMethod: REASONING_METHOD.toUpperCase(),
+            thinking: null,
+            answer: errorMessage,
+            thinkingWordCount: 0,
+            answerWordCount: errorMessage.split(/\s+/).length
           };
         }
         
         renderCurrentThreadMessages();
-        return;
+        
+      } catch (error) {
+        console.error("Fatal error in sendMessage:", error);
+        showNotification("An unexpected error occurred. Please try again.");
       }
     }
 
@@ -6100,8 +5977,14 @@ Separate your steps with periods. Write your final answer after the #### separat
     <textarea name="comments"></textarea>
   </form>
 
-<script async="" id="netlify-rum-container" src="./LLM Playground (COT vs COD)_files/rum" data-netlify-rum-site-id="46b8ee21-754a-4a63-b741-fe88bac724f4" data-netlify-deploy-branch="main" data-netlify-deploy-context="production" data-netlify-cwv-token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzaXRlX2lkIjoiNDZiOGVlMjEtNzU0YS00YTYzLWI3NDEtZmU4OGJhYzcyNGY0IiwiYWNjb3VudF9pZCI6IjY3YzU0MzUzYzc2MjdjOTUxZDZmNTU0MSIsImRlcGxveV9pZCI6IjY3Y2JjOGE0NzRlY2E1MDAwODQ5MWVhYiIsImlzc3VlciI6Im5mc2VydmVyIn0.eeKx8JPS1uEj-YKOwtWMAEBFgcCAjTWkB8RLzmCfMmI"></script>
-
-
-<script async id="netlify-rum-container" src="/.netlify/scripts/rum" data-netlify-rum-site-id="49f667dd-e402-4fab-a0c0-7809ec627695" data-netlify-deploy-branch="main" data-netlify-deploy-context="production" data-netlify-cwv-token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzaXRlX2lkIjoiNDlmNjY3ZGQtZTQwMi00ZmFiLWEwYzAtNzgwOWVjNjI3Njk1IiwiYWNjb3VudF9pZCI6IjY3YzU0MzUzYzc2MjdjOTUxZDZmNTU0MSIsImRlcGxveV9pZCI6IjY3ZGUzYWEyZDcxY2ZjMDAwODBlNGQzNiIsImlzc3VlciI6Im5mc2VydmVyIn0.2UCS2qUV0NlBT5zrCQVDGvzc-K1BTs57qxdP0SPJYlY"></script></body>
+  <!-- Netlify RUM Scripts -->
+  <script defer id="netlify-rum-container" 
+    src="/.netlify/scripts/rum" 
+    data-netlify-rum-site-id="49f667dd-e402-4fab-a0c0-7809ec627695" 
+    data-netlify-deploy-branch="main" 
+    data-netlify-deploy-context="production" 
+    data-netlify-cwv-token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzaXRlX2lkIjoiNDlmNjY3ZGQtZTQwMi00ZmFiLWEwYzAtNzgwOWVjNjI3Njk1IiwiYWNjb3VudF9pZCI6IjY3YzU0MzUzYzc2MjdjOTUxZDZmNTU0MSIsImRlcGxveV9pZCI6IjY3ZGUzYWEyZDcxY2ZjMDAwODBlNGQzNiIsImlzc3VlciI6Im5mc2VydmVyIn0.2UCS2qUV0NlBT5zrCQVDGvzc-K1BTs57qxdP0SPJYlY"
+    onerror="console.warn('Netlify RUM script failed to load');">
+  </script>
+</body>
 </html>
