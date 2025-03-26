@@ -1,7 +1,8 @@
-// Edge function for streaming API responses
-// @vercel/edge
-
+// Vercel Edge Function for streaming API responses
 export default async function handler(request, context) {
+  // Log function invocation
+  console.log("Streaming API called:", new Date().toISOString());
+
   // Handle CORS for preflight requests
   if (request.method === 'OPTIONS') {
     return new Response(null, {
@@ -23,7 +24,8 @@ export default async function handler(request, context) {
         status: 405,
         headers: {
           'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
+          'Access-Control-Allow-Origin': '*',
+          'Allow': 'POST'
         }
       }
     );
@@ -32,8 +34,10 @@ export default async function handler(request, context) {
   try {
     // Get the Fireworks API key from environment variables
     const apiKey = process.env.FIREWORKS_API_KEY;
+    console.log("Environment check: FIREWORKS_API_KEY exists?", !!apiKey);
     
     if (!apiKey) {
+      console.error("ERROR: Fireworks API key is missing in environment variables");
       return new Response(
         JSON.stringify({
           error: 'API key not configured',
@@ -54,6 +58,7 @@ export default async function handler(request, context) {
     try {
       requestBody = await request.json();
     } catch (parseError) {
+      console.error("Failed to parse request body:", parseError);
       return new Response(
         JSON.stringify({
           error: 'Invalid JSON in request body',
@@ -70,7 +75,8 @@ export default async function handler(request, context) {
     }
 
     // Log request information
-    console.log('Streaming request received for model:', requestBody.model || 'unknown');
+    const modelName = requestBody.model || 'unknown';
+    console.log('Streaming request received for model:', modelName);
     
     // Enable streaming if not explicitly set
     if (requestBody.stream === undefined) {
