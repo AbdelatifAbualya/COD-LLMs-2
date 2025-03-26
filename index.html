@@ -262,7 +262,7 @@
     
     .chat-messages {
       flex: 1;
-      padding: 1.5rem 3rem; /* Match input container padding */
+      padding: 1.5rem 1.5rem; /* Match input container padding */
       overflow-y: auto;
       scroll-behavior: smooth;
       display: flex;
@@ -274,7 +274,7 @@
     .chat-input-container {
       border-top: 1px solid var(--border-light);
       background-color: var(--bg-secondary);
-      padding: 1.5rem 3rem; /* Further increased horizontal padding */
+      padding: 1.5rem 1.5rem; /* Reduced horizontal padding to allow wider input */
       position: relative;
       width: 100%;
       display: flex;
@@ -288,25 +288,25 @@
       align-items: center;
       background-color: var(--bg-tertiary);
       border-radius: var(--radius-md);
-      padding: 18px 20px; /* Increased horizontal padding */
-      min-height: 60px;
-      width: 95%; /* Use percentage of container width */
-      max-width: 95%; /* Limit width to 95% */
-      border: 1px solid var(--border-light);
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      padding: 22px 25px; /* Increased padding */
+      min-height: 85px; /* Increased from 70px to 85px */
+      width: 100%; /* Full width */
+      max-width: 100%; /* Full width */
+      border: 2px solid var(--accent-primary); /* Increased border width from 1px to 2px and changed color to accent-primary */
+      box-shadow: 0 4px 12px rgba(86, 134, 245, 0.2); /* Enhanced shadow with accent color */
     }
     
     .chat-input textarea {
       flex: 1;
-      min-height: 28px;
+      min-height: 48px; /* Increased from 38px to 48px */
       max-height: 200px;
-      padding: 14px 18px;
+      padding: 16px 20px; /* Increased padding */
       background-color: var(--bg-component);
       border: 1px solid var(--border-medium);
       border-radius: var(--radius-sm);
       color: var(--text-primary);
       font-family: 'Inter', sans-serif;
-      font-size: 1.05rem; /* Larger font */
+      font-size: 1.1rem; /* Larger font */
       line-height: 1.5;
       resize: none;
       outline: none;
@@ -331,8 +331,8 @@
     #sendBtn {
       background-color: var(--accent-primary);
       color: white;
-      width: 70px; /* Wider button */
-      height: 40px; /* Taller button */
+      width: 85px; /* Wider button */
+      height: 55px; /* Taller button to match new input height */
       padding: 0;
       display: flex;
       align-items: center;
@@ -342,6 +342,7 @@
       transition: all var(--transition-fast);
       border: none;
       font-weight: 500;
+      font-size: 1.05rem; /* Larger font size */
     }
     
     #sendBtn:hover {
@@ -781,7 +782,6 @@
       height: 100%;
       overflow-y: auto;
       background-color: rgba(0, 0, 0, 0.7);
-      -webkit-backdrop-filter: blur(4px);
       backdrop-filter: blur(4px);
       animation: fadeIn 0.2s ease;
     }
@@ -921,8 +921,9 @@
     }
     
     .tab-btn.active {
-      background-color: #5686f5;
-      color: white;
+      background-color: var(--bg-hover);
+      color: var(--text-primary);
+      border-bottom: 2px solid var(--accent-primary);
     }
     
     .tab-content {
@@ -1047,27 +1048,28 @@
       -moz-appearance: none;
       appearance: none;
       border-radius: 50%;
-      width: 18px;
-      height: 18px;
+      width: 16px;
+      height: 16px;
       border: 2px solid var(--border-medium);
       outline: none;
       margin-right: 8px;
       position: relative;
       cursor: pointer;
-      transition: all var(--transition-fast);
     }
     
     input[type="radio"]:checked {
-      border-color: #5686f5;
-      background-color: #5686f5;
+      border-color: var(--accent-primary);
     }
     
     input[type="radio"]:checked:before {
-      display: none;
-    }
-    
-    input[type="radio"]:hover {
-      border-color: #4169e1;
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent-primary);
     }
     
     input[type="checkbox"] {
@@ -1114,8 +1116,8 @@
       position: fixed;
       bottom: 20px;
       right: 20px;
-      background-color: var(--accent-primary);
-      color: white;
+      background-color: var(--bg-component);
+      color: var(--text-primary);
       padding: 10px 15px;
       border-radius: var(--radius-sm);
       box-shadow: var(--shadow-md);
@@ -1178,31 +1180,21 @@
     }
     
     .prompt-editor {
-      margin-top: 20px;
-      padding: 15px;
-      background: var(--bg-tertiary);
-      border-radius: var(--radius-md);
-      box-shadow: var(--shadow-sm);
+      margin-top: 15px;
     }
     
     .prompt-editor textarea {
       width: 100%;
-      min-height: 180px;
-      background-color: var(--bg-component);
+      min-height: 150px;
+      background-color: var(--bg-tertiary);
       color: var(--text-primary);
       border: 1px solid var(--border-medium);
       border-radius: var(--radius-sm);
-      padding: 15px;
-      font-family: 'Roboto Mono', monospace;
-      font-size: 1rem;
-      line-height: 1.6;
+      padding: 10px;
+      font-family: monospace;
+      font-size: 0.9rem;
+      line-height: 1.4;
       resize: vertical;
-      transition: all var(--transition-fast);
-    }
-    
-    .prompt-editor textarea:focus {
-      border-color: var(--accent-primary);
-      box-shadow: 0 0 0 2px rgba(86, 134, 245, 0.2);
     }
     
     .prompt-reset {
@@ -1409,12 +1401,11 @@
     }
     
     input:checked + .toggle-slider {
-      background-color: #e34a4a;
+      background-color: var(--accent-primary);
     }
     
     input:checked + .toggle-slider:before {
       transform: translateX(22px);
-      background-color: white;
     }
     
     .enhanced-reasoning {
@@ -1717,7 +1708,6 @@
     .range-container {
       position: relative;
       margin-bottom: 20px;
-      width: 100%;
     }
     
     .range-value {
@@ -1726,8 +1716,83 @@
       top: 0;
       font-size: 0.9rem;
       color: var(--text-secondary);
-      min-width: 40px;
-      text-align: right;
+    }
+    
+    /* Slider input styling for thin orange lines */
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 4px;
+      background: #333;
+      border-radius: 2px;
+      outline: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #FF5722;
+      cursor: pointer;
+      border: none;
+    }
+    
+    input[type="range"]::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #FF5722;
+      cursor: pointer;
+      border: none;
+    }
+    
+    input[type="range"]::-ms-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #FF5722;
+      cursor: pointer;
+      border: none;
+    }
+    
+    /* Track styling for thin orange lines */
+    input[type="range"]::-webkit-slider-runnable-track {
+      width: 100%;
+      height: 4px;
+      background: #333;
+      border-radius: 2px;
+    }
+    
+    input[type="range"]::-moz-range-track {
+      width: 100%;
+      height: 4px;
+      background: #333;
+      border-radius: 2px;
+    }
+    
+    input[type="range"]::-ms-track {
+      width: 100%;
+      height: 4px;
+      background: transparent;
+      border-color: transparent;
+      color: transparent;
+    }
+    
+    /* Progress styling for thin orange lines */
+    input[type="range"]::-moz-range-progress {
+      height: 4px;
+      background: #FF5722;
+      border-radius: 2px;
+    }
+    
+    input[type="range"]::-ms-fill-lower {
+      height: 4px;
+      background: #FF5722;
+      border-radius: 2px;
     }
     
     #sendBtn, #clearThreadBtn {
@@ -1917,7 +1982,7 @@
       margin: 2% auto;
       padding: 25px 30px;
       border: 1px solid var(--border-medium);
-      width: 700px;
+      width: 750px; /* Increased from 700px */
       max-width: 95%;
       border-radius: var(--radius-lg);
       color: var(--text-primary);
@@ -1960,12 +2025,12 @@
     }
 
     .settings-section-header {
-      font-size: 1.1rem;
+      font-size: 1rem;
       font-weight: 600;
       color: var(--text-primary);
-      margin-bottom: 20px;
-      padding-bottom: 10px;
-      border-bottom: 2px solid var(--accent-primary);
+      margin-bottom: 15px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border-light);
     }
 
     /* Model Selection Enhancement */
@@ -2299,19 +2364,19 @@
 
     /* Custom Scrollbar */
     ::-webkit-scrollbar {
-      width: 12px;
-      height: 12px;
+      width: 8px;  /* Reduced from 12px to 8px */
+      height: 8px; /* Reduced from 12px to 8px */
     }
 
     ::-webkit-scrollbar-track {
       background: var(--bg-tertiary);
-      border-radius: 6px;
+      border-radius: 10px;
     }
 
     ::-webkit-scrollbar-thumb {
       background: var(--accent-primary);
-      border-radius: 6px;
-      border: 0px solid var(--bg-tertiary);
+      border-radius: 10px;
+      border: 2px solid var(--bg-tertiary);
     }
 
     ::-webkit-scrollbar-thumb:hover {
@@ -2353,47 +2418,45 @@
     input[type="range"] {
       -webkit-appearance: none;
       width: 100%;
-      height: 8px;
+      height: 4px;
       background: var(--bg-component);
       border-radius: 4px;
       outline: none;
-      background: linear-gradient(to right, #e34a4a var(--value-percent, 50%), var(--bg-component) var(--value-percent, 50%)) !important;
+      background: linear-gradient(to right, #FF5722 var(--value-percent, 50%), var(--bg-component) var(--value-percent, 50%)) !important;
+    }
+    
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 4px;
+      background: linear-gradient(to right, #FF5722 var(--value-percent, 50%), var(--bg-component) var(--value-percent, 50%));
+      border-radius: 4px;
+    }
+    
+    input[type="range"]::-moz-range-track {
+      height: 4px;
+      background: linear-gradient(to right, #FF5722 var(--value-percent, 50%), var(--bg-component) var(--value-percent, 50%));
+      border-radius: 4px;
     }
     
     input[type="range"]::-webkit-slider-thumb {
       -webkit-appearance: none;
-      width: 22px;
-      height: 22px;
+      width: 16px; /* Reduced from 18px to 16px */
+      height: 16px; /* Reduced from 18px to 16px */
       background: white !important;
       border-radius: 50%;
       cursor: pointer;
-      border: 2px solid white !important;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-      margin-top: -7px;
+      border: 1px solid rgba(0, 0, 0, 0.1) !important;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); /* Lighter shadow */
+      margin-top: -6px;
     }
     
     input[type="range"]::-moz-range-thumb {
-      width: 22px;
-      height: 22px;
+      width: 16px; /* Reduced from 18px to 16px */
+      height: 16px; /* Reduced from 18px to 16px */
       background: white !important;
       border-radius: 50%;
       cursor: pointer;
-      border: 2px solid white !important;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-    }
-    
-    input[type="range"]::-webkit-slider-runnable-track {
-      height: 8px;
-      background: var(--bg-component);
-      border-radius: 4px;
-      background: linear-gradient(to right, #e34a4a var(--value-percent, 50%), var(--bg-component) var(--value-percent, 50%)) !important;
-    }
-    
-    input[type="range"]::-moz-range-track {
-      height: 8px;
-      background: var(--bg-component);
-      border-radius: 4px;
-      background: linear-gradient(to right, #e34a4a var(--value-percent, 50%), var(--bg-component) var(--value-percent, 50%)) !important;
+      border: 1px solid rgba(0, 0, 0, 0.1) !important;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); /* Lighter shadow */
     }
     
     /* Make sure the slider values show the full number */
@@ -2462,6 +2525,26 @@
       document.querySelectorAll('input[type="range"]').forEach(slider => {
         slider.addEventListener('input', updateRangeColor);
       });
+      
+      // Initialize streaming toggle
+      const streamingToggle = document.getElementById('streamingToggle');
+      if (streamingToggle) {
+        // Initialize from localStorage if available
+        const savedStreamingValue = localStorage.getItem('streamingEnabled');
+        if (savedStreamingValue !== null) {
+          ENABLE_STREAMING = savedStreamingValue === 'true';
+          streamingToggle.checked = ENABLE_STREAMING;
+        } else {
+          streamingToggle.checked = ENABLE_STREAMING;
+        }
+        
+        // Add change event listener
+        streamingToggle.addEventListener('change', () => {
+          ENABLE_STREAMING = streamingToggle.checked;
+          localStorage.setItem('streamingEnabled', ENABLE_STREAMING.toString());
+          showNotification(`Streaming mode ${ENABLE_STREAMING ? 'enabled' : 'disabled'}`);
+        });
+      }
     });
   </script>
 </head>
@@ -2526,8 +2609,8 @@
   <div id="statusNotification" class="status-notification">TXT file downloaded</div>
 
   <!-- Settings Modal -->
-<div id="settingsModal" class="modal" style="display: none;">
-  <div class="modal-content">
+<div id="settingsModal" class="modal" style="display: block;">
+  <div class="modal-content" style="max-width: 580px; padding: 15px 20px;">
     <button class="close-modal" id="closeModalX">×</button>
     <h2>Settings</h2>
     
@@ -2541,26 +2624,19 @@
     <div id="modelTab" class="tab-content" style="display: none;">
       <div class="settings-section-header">Model Selection</div>
 
-      <label for="modelSelect">Select AI Model</label>
+      <label for="modelSelect">Select DeepSeek Model</label>
       <div class="model-select-container">
-        <select id="modelSelect" class="model-dropdown">
-          <option value="" disabled selected>Choose a model...</option>
-          <option value="accounts/fireworks/models/deepseek-v3-0324">DeepSeek V3</option>
-          <option value="accounts/fireworks/models/qwen2p5-coder-32b-instruct">Qwen2.5 Coder 32B</option>
-          <option value="accounts/fireworks/models/llama-v3p3-70b-instruct">Llama 3.3 70B</option>
-          <option value="accounts/fireworks/models/mixtral-8x22b-instruct">Mixtral 8x22B</option>
-          <option value="accounts/fireworks/models/mistral-small-24b-instruct-2501">Mistral Small 24B</option>
-        </select>
+        <select id="modelSelect" class="model-dropdown"><option value="" disabled="disabled">Choose a model...</option><option value="deepseek-chat" selected="selected">DeepSeek Chat V3</option><option value="deepseek-reasoner">DeepSeek R1 (Reasoner)</option></select>
         <div class="dropdown-arrow">▼</div>
       </div>
 
-      <div class="model-info-card" id="modelInfoCard" style="display: block;">
+      <div class="model-info-card" id="modelInfoCard" style="display: block; opacity: 1; transform: translateY(0px); transition: opacity 0.3s, transform 0.3s;">
         <div class="model-info-header">
           <span id="selectedModelName">DeepSeek Chat V3</span>
         </div>
         <div class="model-info-body">
-          <div class="model-tags" id="modelTags"></div>
-          <div class="model-description" id="modelDescription"></div>
+          <div class="model-tags" id="modelTags" style="opacity: 1;"><span class="model-tag">Latest</span><span class="model-tag">Versatile</span><span class="model-tag">Chat</span></div>
+          <div class="model-description" id="modelDescription" style="opacity: 1;">DeepSeek's latest chat model with strong performance across a wide range of tasks.</div>
         </div>
       </div>
 
@@ -2589,7 +2665,7 @@
           </div>
           
           <div class="radio-option">
-            <input type="radio" id="codReasoning" name="reasoningMethod" value="cod" checked>
+            <input type="radio" id="codReasoning" name="reasoningMethod" value="cod" checked="checked">
             <label for="codReasoning">Chain of Draft (CoD)</label>
             <div class="tooltip">?
               <span class="tooltiptext">Uses minimal words per step (research paper approach) to reduce token usage while maintaining reasoning quality.</span>
@@ -2598,53 +2674,53 @@
         </div>
         
         <!-- COD Word Limit options -->
-        <div id="codOptions" class="cod-options" style="display: none;">
-          <div class="option-label">Word limit per step:</div>
-          <div class="cod-word-limit-options">
-            <div class="cod-word-limit-option" data-value="5">
-              <span class="cod-word-limit-value">5 words</span>
-              <span class="cod-word-limit-desc">Original paper recommendation</span>
-            </div>
-            <div class="cod-word-limit-option" data-value="10">
-              <span class="cod-word-limit-value">10 words</span>
-              <span class="cod-word-limit-desc">Balanced brevity and clarity</span>
-            </div>
-            <div class="cod-word-limit-option" data-value="15">
-              <span class="cod-word-limit-value">15 words</span>
-              <span class="cod-word-limit-desc">More descriptive steps</span>
-            </div>
-            <div class="cod-word-limit-option" data-value="17">
-              <span class="cod-word-limit-value">17 words</span>
-              <span class="cod-word-limit-desc">Better for complex reasoning</span>
-            </div>
-            <div class="cod-word-limit-option selected" data-value="20">
-              <span class="cod-word-limit-value">20 words</span>
-              <span class="cod-word-limit-desc">Detailed steps for math & logic</span>
-            </div>
+        <div id="codOptions" class="cod-options" style="display: block;">
+        <div class="option-label">Word limit per step:</div>
+        <div class="cod-word-limit-options">
+          <div class="cod-word-limit-option selected" data-value="5">
+            <span class="cod-word-limit-value">5 words</span>
+            <span class="cod-word-limit-desc">Original paper recommendation</span>
           </div>
-          
-          <div class="cod-examples">
-            <div class="cod-examples-header">Chain of Draft Example</div>
-            <div class="cod-example-item">
-              <div class="cod-example-question">Q: If a fabric store received 45 yards of cotton and used 2/9 of it, how many yards remain?</div>
-              <div class="cod-example-answer">A: Total: 45 yards. Used: 2/9 × 45 = 10 yards. Remaining: 45 - 10 = 35 yards. #### 35 yards</div>
-            </div>
+          <div class="cod-word-limit-option " data-value="10">
+            <span class="cod-word-limit-value">10 words</span>
+            <span class="cod-word-limit-desc">Balanced brevity and clarity</span>
+          </div>
+          <div class="cod-word-limit-option " data-value="15">
+            <span class="cod-word-limit-value">15 words</span>
+            <span class="cod-word-limit-desc">More descriptive steps</span>
+          </div>
+          <div class="cod-word-limit-option " data-value="17">
+            <span class="cod-word-limit-value">17 words</span>
+            <span class="cod-word-limit-desc">Better for complex reasoning</span>
+          </div>
+          <div class="cod-word-limit-option " data-value="20">
+            <span class="cod-word-limit-value">20 words</span>
+            <span class="cod-word-limit-desc">Detailed steps for math &amp; logic</span>
           </div>
         </div>
+        
+        <div class="cod-examples">
+          <div class="cod-examples-header">Chain of Draft Example</div>
+          <div class="cod-example-item">
+            <div class="cod-example-question">Q: If a fabric store received 45 yards of cotton and used 2/9 of it, how many yards remain?</div>
+            <div class="cod-example-answer">A: Total: 45 yards. Used: 2/9 × 45 = 10 yards. Remaining: 45 - 10 = 35 yards. #### 35 yards</div>
+          </div>
+        </div>
+      </div>
       </div>
       
       <!-- NEW: Enhanced Reasoning Controls -->
       <div class="advanced-options-header">
         Advanced Reasoning Options
         <label class="toggle-switch">
-          <input type="checkbox" id="enhancedReasoningToggle" checked>
+          <input type="checkbox" id="enhancedReasoningToggle" checked="checked">
           <span class="toggle-slider"></span>
         </label>
       </div>
       
-      <div id="enhancedReasoningOptions" class="enhanced-reasoning">
+      <div id="enhancedReasoningOptions" class="enhanced-reasoning" style="display: block;">
         <div class="enhanced-reasoning-option">
-          <input type="radio" id="adaptiveReasoning" name="reasoningEnhancement" value="adaptive" checked>
+          <input type="radio" id="adaptiveReasoning" name="reasoningEnhancement" value="adaptive" checked="checked">
           <label for="adaptiveReasoning">Adaptive Reasoning</label>
           <span class="auto-detection-badge"><span class="indicator"></span>Auto</span>
         </div>
@@ -2681,7 +2757,7 @@
       <div class="advanced-options-header">
         Self-Reflection for Chain of Draft
         <label class="toggle-switch">
-          <input type="checkbox" id="selfReflectionToggle" checked>
+          <input type="checkbox" id="selfReflectionToggle" checked="checked">
           <span class="toggle-slider"></span>
         </label>
       </div>
@@ -2710,29 +2786,29 @@
     </div>
     
     <!-- Parameters Tab -->
-    <div id="parametersTab" class="tab-content active">
-      <div class="settings-section-header">Generation Parameters</div>
+    <div id="parametersTab" class="tab-content active" style="display: block;">
+      <div class="settings-section-header" style="margin-bottom: 15px;">Generation Parameters</div>
       
       <label for="temp">Temperature</label>
       <div class="range-container">
-        <input type="range" id="temp" min="0" max="1" step="0.01" value="0.5">
+        <input type="range" id="temp" min="0" max="1" step="0.01" value="0.5" style="height: 3px; background: #333; border-radius: 2px; appearance: none; -webkit-appearance: none; outline: none; accent-color: #FF5722;">
         <span id="tempValue" class="range-value">0.5</span>
       </div>
-      <p style="font-size: 0.8rem; color: #aaa; margin-top: 0;">Controls randomness: lower values make responses more focused.</p>
+      <p style="font-size: 0.8rem; color: #aaa; margin-top: -15px; margin-bottom: 15px;">Controls randomness: lower values make responses more focused.</p>
 
       <label for="topP">Top P</label>
       <div class="range-container">
-        <input type="range" id="topP" min="0" max="1" step="0.01" value="0.90">
+        <input type="range" id="topP" min="0" max="1" step="0.01" value="0.90" style="height: 3px; background: #333; border-radius: 2px; appearance: none; -webkit-appearance: none; outline: none; accent-color: #FF5722;">
         <span id="topPValue" class="range-value">0.9</span>
       </div>
-      <p style="font-size: 0.8rem; color: #aaa; margin-top: 0;">Controls diversity via nucleus sampling.</p>
+      <p style="font-size: 0.8rem; color: #aaa; margin-top: -15px; margin-bottom: 15px;">Controls diversity via nucleus sampling.</p>
 
       <label for="maxTokens">Max Tokens</label>
       <div class="range-container">
-        <input type="range" id="maxTokens" min="1" max="8192" step="128" value="4096">
+        <input type="range" id="maxTokens" min="1" max="8192" step="128" value="4096" style="height: 3px; background: #333; border-radius: 2px; appearance: none; -webkit-appearance: none; outline: none; accent-color: #FF5722;">
         <span id="maxTokensValue" class="range-value">4096</span>
       </div>
-      <p style="font-size: 0.8rem; color: #aaa; margin-top: 0;">Maximum length of the response (1-8192 tokens for DeepSeek models).</p>
+      <p style="font-size: 0.8rem; color: #aaa; margin-top: -15px; margin-bottom: 5px;">Maximum length of the response (1-8192 tokens for DeepSeek models).</p>
     </div>
     
     <div style="text-align: right; margin-top: 20px;">
@@ -2755,7 +2831,7 @@
       
       <label for="feedbackType">Feedback Type:</label>
       <select id="feedbackType" name="feedback_type" style="width: 100%; margin-bottom: 15px;">
-        <option value="general">General Feedback</option>
+        <option value="general" selected="selected">General Feedback</option>
         <option value="bug">Report a Bug</option>
         <option value="feature">Feature Request</option>
         <option value="model_performance">Model Performance</option>
@@ -2764,7 +2840,7 @@
       <label>How would you rate your experience?</label>
       <div style="display: flex; justify-content: space-between; margin: 10px 0 15px 0;">
         <label style="flex: 1; text-align: center;">
-          <input type="radio" name="rating" value="1" required>
+          <input type="radio" name="rating" value="1" required="">
           <div>😞</div>
           <div style="font-size: 0.8rem;">Poor</div>
         </label>
@@ -2791,7 +2867,7 @@
       </div>
       
       <label for="feedbackComments">Comments:</label>
-      <textarea id="feedbackComments" name="comments" rows="4" required></textarea>
+      <textarea id="feedbackComments" name="comments" rows="4" required=""></textarea>
       
       <button type="submit">Submit Feedback</button>
     </form>
@@ -5072,7 +5148,7 @@ A: First segment: The car travels at 60 mph for 2 hours, so the distance covered
           </div>
           <div class="cod-word-limit-option ${COD_WORD_LIMIT === 20 ? 'selected' : ''}" data-value="20">
             <span class="cod-word-limit-value">20 words</span>
-            <span class="cod-word-limit-desc">Detailed steps for math & logic</span>
+            <span class="cod-word-limit-desc">Detailed steps for math &amp; logic</span>
           </div>
         </div>
         
