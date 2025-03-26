@@ -77,7 +77,7 @@ module.exports = async (req, res) => {
           'Authorization': `Bearer ${API_KEY}`
         },
         body: JSON.stringify({
-          model: "sonar-medium-online",
+          model: "sonar-pro",
           messages: [
             { 
               role: "system", 
