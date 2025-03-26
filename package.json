@@ -1,17 +1,10 @@
 {
-  "name": "llm-playground-cot-cod",
+  "name": "chatbot-project",
   "version": "1.0.0",
-  "description": "LLM Playground for comparing Chain of Thought and Chain of Draft reasoning with file upload support",
-  "dependencies": {
-    "node-fetch": "^2.6.7",
-    "buffer": "^6.0.3",
-    "abort-controller": "^3.0.0"
-  },
-  "engines": {
-    "node": ">=14.0.0"
-  },
   "scripts": {
-    "test": "echo \"No tests defined\" && exit 0",
-    "build": "echo \"No build step required\" && exit 0"
+    "start": "vercel dev"
+  },
+  "dependencies": {
+    "node-fetch": "^2.6.1"
   }
 }
