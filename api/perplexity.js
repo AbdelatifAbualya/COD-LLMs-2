@@ -1,4 +1,5 @@
 // Vercel/Netlify Function to handle Perplexity API requests
+// @vercel/edge
 exports.handler = async function(event, context) {
   // Load fetch at runtime
   const fetch = require('node-fetch');
