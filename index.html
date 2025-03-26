@@ -3956,6 +3956,7 @@ A: First segment: The car travels at 60 mph for 2 hours, so the distance covered
       if (!thread) return [];
       
       const messages = [];
+      const supportsMultimodal = doesModelSupportMultimodal(MODEL_NAME);
       
       let systemPrompt = "";
       
@@ -4102,10 +4103,56 @@ A: First segment: The car travels at 60 mph for 2 hours, so the distance covered
       thread.messages
         .filter(msg => !msg.isPlaceholder)
         .forEach(msg => {
-          messages.push({
-            role: msg.sender === "user" ? "user" : "assistant",
-            content: msg.content
-          });
+          if (msg.sender === "user" && msg.files && msg.files.length > 0 && supportsMultimodal) {
+            // Check if we have any image files with dataUrl
+            const hasImages = msg.files.some(file => 
+              file.type.startsWith('image/') && file.dataUrl);
+            
+            if (hasImages) {
+              // For messages with images, create multimodal message format
+              const contentArray = [];
+              
+              // Add text content if present
+              if (msg.content && msg.content.trim()) {
+                contentArray.push({ 
+                  type: "text", 
+                  text: msg.content 
+                });
+              }
+              
+              // Add images to the content array
+              msg.files.forEach(fileObj => {
+                if (fileObj.type.startsWith('image/') && fileObj.dataUrl) {
+                  contentArray.push({
+                    type: "image_url",
+                    image_url: {
+                      url: fileObj.dataUrl
+                    }
+                  });
+                }
+              });
+              
+              // Add the multimodal message
+              messages.push({
+                role: "user",
+                content: contentArray
+              });
+              
+              console.log(`Added multimodal message with ${contentArray.length} parts`);
+            } else {
+              // No valid images, use text-only format
+              messages.push({
+                role: "user",
+                content: msg.content
+              });
+            }
+          } else {
+            // Regular text message
+            messages.push({
+              role: msg.sender === "user" ? "user" : "assistant",
+              content: msg.content
+            });
+          }
         });
       
       return messages;
@@ -4114,6 +4161,31 @@ A: First segment: The car travels at 60 mph for 2 hours, so the distance covered
     /***********************
      * Message Sending
      ***********************/
+    
+    // 1. Function to check which models support multimodal content
+    function doesModelSupportMultimodal(modelName) {
+      const multimodalModels = [
+        'accounts/fireworks/models/deepseek-v3', // DeepSeek V3
+        'accounts/fireworks/models/llama-v3p3-70b', // Llama 3.3 70B
+        'accounts/fireworks/models/qwen2p5' // Qwen 2.5 models
+      ];
+      
+      return multimodalModels.some(supportedModel => 
+        modelName && modelName.includes(supportedModel));
+    }
+
+    // 2. Helper function to read files as base64 data URLs
+    function readFileAsBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          resolve(reader.result); // This is the data URL
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+    
     async function sendMessage(message) {
       // Check if Perplexity is enabled
       const usePerplexity = localStorage.getItem('usePerplexity') === 'true';
@@ -4123,11 +4195,49 @@ A: First segment: The car travels at 60 mph for 2 hours, so the distance covered
         analyzeProblemComplexity(message);
       }
       
-      // Check if there are files to be included
-      const filesToSend = [...attachedFiles];
+      // Process files for sending to the API
+      const supportsMultimodal = doesModelSupportMultimodal(MODEL_NAME);
+      let processedFiles = [];
+
+      if (attachedFiles.length > 0) {
+        try {
+          console.log(`Processing ${attachedFiles.length} files for sending`);
+          
+          // Notify user if images won't be sent to the model
+          if (!supportsMultimodal && attachedFiles.some(file => file.type.startsWith('image/'))) {
+            showNotification(`Note: Selected model (${MODEL_NAME_DISPLAY}) may not fully support image input.`);
+          }
+          
+          for (const file of attachedFiles) {
+            // For images, read as data URL
+            if (file.type.startsWith('image/')) {
+              const dataUrl = await readFileAsBase64(file);
+              processedFiles.push({
+                originalFile: file,
+                name: file.name,
+                type: file.type,
+                size: file.size,
+                dataUrl: dataUrl
+              });
+              console.log(`Processed image file: ${file.name}`);
+            } else {
+              // For other files, just add metadata
+              processedFiles.push({
+                originalFile: file,
+                name: file.name,
+                type: file.type,
+                size: file.size
+              });
+            }
+          }
+        } catch (error) {
+          console.error('Error processing files:', error);
+          showNotification('Error processing files for upload');
+        }
+      }
       
-      // Add message to thread with files
-      addMessageToCurrentThread(message, "user", false, filesToSend);
+      // Add message to thread with processed files
+      addMessageToCurrentThread(message, "user", false, processedFiles);
       
       // Clear attached files after sending
       attachedFiles = [];
@@ -5889,21 +5999,54 @@ Separate your steps with periods. Write your final answer after the #### separat
       files.forEach(file => {
         if (file.type.startsWith('image/')) {
           // Display images inline
-          const reader = new FileReader();
-          reader.onload = (e) => {
+          if (file.dataUrl) {
+            // If we already have a data URL, use it directly
             const img = document.createElement('img');
             img.className = 'message-image';
-            img.src = e.target.result;
-            img.alt = file.name;
+            img.src = file.dataUrl;
+            img.alt = file.name || 'Image';
             
             // Add click event to open full size image
             img.addEventListener('click', () => {
-              window.open(e.target.result, '_blank');
+              window.open(file.dataUrl, '_blank');
             });
             
             messageDiv.appendChild(img);
-          };
-          reader.readAsDataURL(file);
+          } else if (file.originalFile) {
+            // If we have the original file object, read it
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              const img = document.createElement('img');
+              img.className = 'message-image';
+              img.src = e.target.result;
+              img.alt = file.name || 'Image';
+              
+              // Add click event to open full size image
+              img.addEventListener('click', () => {
+                window.open(e.target.result, '_blank');
+              });
+              
+              messageDiv.appendChild(img);
+            };
+            reader.readAsDataURL(file.originalFile);
+          } else {
+            // Original implementation for backward compatibility - direct File object
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              const img = document.createElement('img');
+              img.className = 'message-image';
+              img.src = e.target.result;
+              img.alt = file.name || 'Image';
+              
+              // Add click event to open full size image
+              img.addEventListener('click', () => {
+                window.open(e.target.result, '_blank');
+              });
+              
+              messageDiv.appendChild(img);
+            };
+            reader.readAsDataURL(file);
+          }
         } else {
           // For non-image files, display as attachment
           const attachment = document.createElement('div');
