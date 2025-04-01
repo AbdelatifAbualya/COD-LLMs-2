@@ -362,6 +362,7 @@
       border-radius: var(--radius-sm);
       cursor: pointer;
       transition: all var(--transition-fast);
+      position: relative; /* Added for indicator positioning */
     }
     
     .action-button:hover {
@@ -369,10 +370,35 @@
       transform: translateY(-1px);
     }
     
+    /* New active state styling for action buttons */
+    .action-button.active {
+      background-color: var(--accent-primary) !important;
+      border-color: var(--accent-primary) !important;
+      color: white !important;
+      box-shadow: 0 0 8px rgba(86, 134, 245, 0.5) !important;
+    }
+    
+    /* Status indicator dot */
+    .action-button.active::after {
+      content: '';
+      position: absolute;
+      top: -3px;
+      right: -3px;
+      width: 8px;
+      height: 8px;
+      background-color: #4cd964;
+      border-radius: 50%;
+      border: 1px solid var(--bg-primary);
+    }
+    
     .action-button svg {
       width: 16px;
       height: 16px;
       color: var(--text-secondary);
+    }
+    
+    .action-button.active svg {
+      color: white !important;
     }
     
     #clearThreadBtn {
@@ -783,6 +809,7 @@
       overflow-y: auto;
       background-color: rgba(0, 0, 0, 0.7);
       backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px); /* Add Safari compatibility */
       animation: fadeIn 0.2s ease;
     }
     
@@ -2592,9 +2619,16 @@
               </svg>
             </label>
             <button id="webSearchBtn" class="action-button" type="button" title="Toggle web search">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="11" cy="11" r="8"/>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M11 19C15.4183 19 19 15.4183 19 11C19 6.58172 15.4183 3 11 3C6.58172 3 3 6.58172 3 11C3 15.4183 6.58172 19 11 19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                <path d="M21 21L16.65 16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+              </svg>
+            </button>
+            <button id="ragBtn" class="action-button" type="button" title="Toggle MongoDB RAG">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                <polyline points="12 22.08 12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></polyline>
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></polyline>
               </svg>
             </button>
           </div>
@@ -2791,22 +2825,43 @@
       
       <label for="temp">Temperature</label>
       <div class="range-container">
-        <input type="range" id="temp" min="0" max="1" step="0.01" value="0.5" style="height: 3px; background: #333; border-radius: 2px; appearance: none; -webkit-appearance: none; outline: none; accent-color: #FF5722;">
-        <span id="tempValue" class="range-value">0.5</span>
+        <input type="range" id="temp" min="0" max="1" step="0.01" value="0.6" style="height: 3px; background: #333; border-radius: 2px; appearance: none; -webkit-appearance: none; outline: none; accent-color: #FF5722;">
+        <span id="tempValue" class="range-value">0.6</span>
       </div>
       <p style="font-size: 0.8rem; color: #aaa; margin-top: -15px; margin-bottom: 15px;">Controls randomness: lower values make responses more focused.</p>
 
       <label for="topP">Top P</label>
       <div class="range-container">
-        <input type="range" id="topP" min="0" max="1" step="0.01" value="0.90" style="height: 3px; background: #333; border-radius: 2px; appearance: none; -webkit-appearance: none; outline: none; accent-color: #FF5722;">
-        <span id="topPValue" class="range-value">0.9</span>
+        <input type="range" id="topP" min="0" max="1" step="0.01" value="1" style="height: 3px; background: #333; border-radius: 2px; appearance: none; -webkit-appearance: none; outline: none; accent-color: #FF5722;">
+        <span id="topPValue" class="range-value">1</span>
       </div>
       <p style="font-size: 0.8rem; color: #aaa; margin-top: -15px; margin-bottom: 15px;">Controls diversity via nucleus sampling.</p>
 
+      <label for="topK">Top K</label>
+      <div class="range-container">
+        <input type="range" id="topK" min="0" max="100" step="1" value="40" style="height: 3px; background: #333; border-radius: 2px; appearance: none; -webkit-appearance: none; outline: none; accent-color: #FF5722;">
+        <span id="topKValue" class="range-value">40</span>
+      </div>
+      <p style="font-size: 0.8rem; color: #aaa; margin-top: -15px; margin-bottom: 15px;">Limits token selection to top K options.</p>
+
+      <label for="presencePenalty">Presence Penalty</label>
+      <div class="range-container">
+        <input type="range" id="presencePenalty" min="0" max="2" step="0.01" value="0" style="height: 3px; background: #333; border-radius: 2px; appearance: none; -webkit-appearance: none; outline: none; accent-color: #FF5722;">
+        <span id="presencePenaltyValue" class="range-value">0</span>
+      </div>
+      <p style="font-size: 0.8rem; color: #aaa; margin-top: -15px; margin-bottom: 15px;">Reduces repetition of similar tokens.</p>
+
+      <label for="frequencyPenalty">Frequency Penalty</label>
+      <div class="range-container">
+        <input type="range" id="frequencyPenalty" min="0" max="2" step="0.01" value="0" style="height: 3px; background: #333; border-radius: 2px; appearance: none; -webkit-appearance: none; outline: none; accent-color: #FF5722;">
+        <span id="frequencyPenaltyValue" class="range-value">0</span>
+      </div>
+      <p style="font-size: 0.8rem; color: #aaa; margin-top: -15px; margin-bottom: 15px;">Reduces repetition based on frequency.</p>
+
       <label for="maxTokens">Max Tokens</label>
       <div class="range-container">
-        <input type="range" id="maxTokens" min="1" max="8192" step="128" value="4096" style="height: 3px; background: #333; border-radius: 2px; appearance: none; -webkit-appearance: none; outline: none; accent-color: #FF5722;">
-        <span id="maxTokensValue" class="range-value">4096</span>
+        <input type="range" id="maxTokens" min="1" max="8192" step="128" value="4008" style="height: 3px; background: #333; border-radius: 2px; appearance: none; -webkit-appearance: none; outline: none; accent-color: #FF5722;">
+        <span id="maxTokensValue" class="range-value">4008</span>
       </div>
       <p style="font-size: 0.8rem; color: #aaa; margin-top: -15px; margin-bottom: 5px;">Maximum length of the response (1-8192 tokens for DeepSeek models).</p>
     </div>
@@ -3008,9 +3063,12 @@ A: First segment: The car travels at 60 mph for 2 hours, so the distance covered
     };
     
     // Default generation parameters
-    let TEMPERATURE = 0.5;
-    let TOP_P = 0.90;
-    let MAX_TOKENS = 4096;
+    let TEMPERATURE = 0.6;
+    let TOP_P = 1;
+    let MAX_TOKENS = 4008;
+    let TOP_K = 40;
+    let PRESENCE_PENALTY = 0;
+    let FREQUENCY_PENALTY = 0;
 
     // Initialize global self-reflection variables
     let SELF_REFLECTION_ENABLED = true;
@@ -3159,6 +3217,8 @@ A: First segment: The car travels at 60 mph for 2 hours, so the distance covered
      * Helper: Parse Content for Export
      ************************************************/
     function parseContentForExport(content) {
+      if (!content) return []; // Handle empty content
+      
       const result = [];
       const segments = content.split(/```/);
       for (let i = 0; i < segments.length; i++) {
@@ -3171,7 +3231,7 @@ A: First segment: The car travels at 60 mph for 2 hours, so the distance covered
         } else {
           // Code block
           const codeSegment = segments[i].trim();
-          const firstNewlineIndex = codeSegment.index('\n');
+          const firstNewlineIndex = codeSegment.indexOf('\n'); // Fixed: was using index()
           let language = '';
           let codeContent = codeSegment;
           if (firstNewlineIndex !== -1) {
@@ -3412,20 +3472,25 @@ A: First segment: The car travels at 60 mph for 2 hours, so the distance covered
      ***********************/
     function downloadCurrentThreadAsTxt() {
       const thread = threads.find(t => t.id === currentThreadId);
-      if (!thread) return;
+      if (!thread) {
+        showNotification("Error: No active thread found");
+        return;
+      }
 
-      let content = `Model: ${MODEL_NAME_DISPLAY} (${REASONING_METHOD.toUpperCase()}`;
+      let content = `Model: ${MODEL_NAME_DISPLAY || "Unknown"} (${REASONING_METHOD.toUpperCase()}`;
       if (REASONING_METHOD === "cod") {
         content += `-${COD_WORD_LIMIT}`;
       }
       content += `)\n\n`;
 
       thread.messages.forEach(msg => {
+        if (msg.isPlaceholder) return; // Skip placeholder messages
+        
         const prefix = msg.sender.toUpperCase();
         
         // Add word count info for bot messages
         let headerInfo = prefix;
-        if (msg.sender === "bot" && !msg.isPlaceholder && msg.wordCount !== undefined) {
+        if (msg.sender === "bot" && msg.wordCount !== undefined) {
           let countInfo = `[${msg.wordCount} words - ${msg.reasoningMethod || REASONING_METHOD.toUpperCase()}]`;
           if (msg.thinkingWordCount !== undefined && msg.answerWordCount !== undefined) {
             countInfo += ` (thinking: ${msg.thinkingWordCount}, answer: ${msg.answerWordCount})`;
@@ -3439,19 +3504,26 @@ A: First segment: The car travels at 60 mph for 2 hours, so the distance covered
         if (msg.sender === "bot" && msg.thinking && msg.answer) {
           content += `THINKING STEPS:\n${msg.thinking}\n\nFINAL ANSWER:\n${msg.answer}\n`;
         } else {
-          const parsed = parseContentForExport(msg.content);
-          parsed.forEach(item => {
-            if (item.type === 'text') {
-              content += item.content + '\n';
-            } else if (item.type === 'code') {
-              const lang = item.language ? ` (${item.language})` : '';
-              content += `----- CODE BLOCK START${lang} -----\n`;
-              item.content.forEach(line => {
-                content += `  ${line}\n`;
-              });
-              content += `----- CODE BLOCK END -----\n`;
-            }
-          });
+          // Use the fixed parseContentForExport function
+          try {
+            const parsed = parseContentForExport(msg.content || "");
+            parsed.forEach(item => {
+              if (item.type === 'text') {
+                content += item.content + '\n';
+              } else if (item.type === 'code') {
+                const lang = item.language ? ` (${item.language})` : '';
+                content += `----- CODE BLOCK START${lang} -----\n`;
+                item.content.forEach(line => {
+                  content += `  ${line}\n`;
+                });
+                content += `----- CODE BLOCK END -----\n`;
+              }
+            });
+          } catch (error) {
+            console.error("Error parsing message content:", error);
+            // Fallback to raw content if parsing fails
+            content += (msg.content || "") + '\n';
+          }
         }
         content += '\n';
       });
@@ -3460,11 +3532,14 @@ A: First segment: The car travels at 60 mph for 2 hours, so the distance covered
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${thread.name}.txt`;
+      a.download = `${thread.name || "Thread"}.txt`;
+      a.style.display = 'none';
       document.body.appendChild(a);
       a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 100);
       
       showNotification("TXT file downloaded");
     }
@@ -3474,45 +3549,71 @@ A: First segment: The car travels at 60 mph for 2 hours, so the distance covered
      ***********************/
     function downloadCurrentThreadAsPdf() {
       const thread = threads.find(t => t.id === currentThreadId);
-      if (!thread) return;
+      if (!thread) {
+        showNotification("Error: No active thread found");
+        return;
+      }
 
       try {
-        // First check if jspdf is available in the expected format
-        if (typeof window.jspdf === 'undefined') {
-          console.error("jsPDF library not found in window.jspdf");
-          // Try alternate locations where jsPDF might be loaded
-          if (typeof jspdf !== 'undefined') {
-            window.jspdf = jspdf;
-          } else if (typeof window.jsPDF !== 'undefined') {
-            window.jspdf = { jsPDF: window.jsPDF };
-          } else {
-            throw new Error("jsPDF library not found. Please reload the page and try again.");
-          }
+        // Check if jsPDF is available
+        if (typeof window.jspdf === 'undefined' && typeof window.jsPDF === 'undefined') {
+          throw new Error("PDF generation library not available. Try downloading as TXT instead.");
+        }
+        
+        // Get jsPDF constructor - check all possible locations
+        const jsPDF = window.jspdf?.jsPDF || window.jsPDF || window.jspdf;
+        if (!jsPDF) {
+          throw new Error("PDF generation library not properly loaded.");
         }
 
-        // Now create the PDF document
-        const jsPDF = window.jspdf.jsPDF || window.jspdf;
+        // Create PDF document
         const doc = new jsPDF({
+          orientation: "portrait",
           unit: "pt",
           format: "letter"
         });
 
+        // Helper function to set background color for pages
         function setPageBackground(doc) {
           doc.setFillColor(30, 30, 30);
           doc.rect(0, 0, doc.internal.pageSize.width, doc.internal.pageSize.height, 'F');
         }
 
+        // Set background for the first page
         setPageBackground(doc);
+        
+        // Set text color and font
         doc.setTextColor(224, 224, 224);
+        doc.setFont("helvetica");
 
+        // Add title
         let yPos = 40;
+        doc.setFontSize(16);
+        const title = thread.name || "Thread";
+        doc.text(title, 40, yPos);
+        yPos += 20;
+
+        // Add model info
+        doc.setFontSize(12);
+        let modelText = `Model: ${MODEL_NAME_DISPLAY || "Unknown"} (${REASONING_METHOD.toUpperCase()}`;
+        if (REASONING_METHOD === "cod") {
+          modelText += `-${COD_WORD_LIMIT}`;
+        }
+        modelText += `)`;
+        doc.text(modelText, 40, yPos);
+        yPos += 30;
+
+        // Helper constants
         const lineHeight = 14;
         const leftMargin = 40;
-        const pageHeight = doc.internal.pageSize.height - 50; // Margin at bottom
+        const rightMargin = 40;
+        const pageWidth = doc.internal.pageSize.getWidth ? doc.internal.pageSize.getWidth() : doc.internal.pageSize.width;
+        const pageHeight = (doc.internal.pageSize.getHeight ? doc.internal.pageSize.getHeight() : doc.internal.pageSize.height) - 50; // Margin at bottom
+        const maxLineWidth = pageWidth - leftMargin - rightMargin;
 
-        // Check if we need a new page
-        function checkNewPage() {
-          if (yPos > pageHeight) {
+        // Helper function to check if we need a new page
+        function checkNewPage(requiredHeight = lineHeight) {
+          if (yPos + requiredHeight > pageHeight) {
             doc.addPage();
             setPageBackground(doc);
             yPos = 40;
@@ -3521,11 +3622,153 @@ A: First segment: The car travels at 60 mph for 2 hours, so the distance covered
           return false;
         }
 
-        // Rest of the PDF generation code remains the same
-        // ...existing PDF generation code...
+        // Helper function to split text into lines that fit the page width
+        function splitTextToFitPage(text, fontSize = 12) {
+          doc.setFontSize(fontSize);
+          return doc.splitTextToSize(text, maxLineWidth);
+        }
 
-        doc.save(`${thread.name}.pdf`);
+        // Process each message
+        thread.messages.forEach((msg, index) => {
+          if (msg.isPlaceholder) return; // Skip placeholder messages
+          
+          // Add spacer between messages
+          if (index > 0) {
+            yPos += 20;
+            checkNewPage();
+          }
+
+          // Message sender and timestamp
+          doc.setFontSize(12);
+          doc.setFont("helvetica", "bold");
+          
+          const sender = msg.sender.toUpperCase();
+          let headerText = sender;
+          
+          // Add word count info for bot messages
+          if (msg.sender === "bot" && msg.wordCount !== undefined) {
+            let countInfo = `[${msg.wordCount} words - ${msg.reasoningMethod || REASONING_METHOD.toUpperCase()}]`;
+            headerText += ` ${countInfo}`;
+          }
+
+          doc.text(headerText, leftMargin, yPos);
+          yPos += lineHeight * 1.5;
+          checkNewPage();
+
+          // Message content
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(11);
+
+          // Handle messages with thinking/answer components separately
+          if (msg.sender === "bot" && msg.thinking && msg.answer) {
+            // Thinking section
+            doc.setFont("helvetica", "bold");
+            doc.text("THINKING STEPS:", leftMargin, yPos);
+            yPos += lineHeight * 1.5;
+            checkNewPage();
+            
+            doc.setFont("helvetica", "normal");
+            const thinkingLines = splitTextToFitPage(msg.thinking);
+            thinkingLines.forEach(line => {
+              checkNewPage();
+              doc.text(line, leftMargin, yPos);
+              yPos += lineHeight;
+            });
+            
+            yPos += lineHeight;
+            checkNewPage();
+            
+            // Answer section
+            doc.setFont("helvetica", "bold");
+            doc.text("FINAL ANSWER:", leftMargin, yPos);
+            yPos += lineHeight * 1.5;
+            checkNewPage();
+            
+            doc.setFont("helvetica", "normal");
+            const answerLines = splitTextToFitPage(msg.answer);
+            answerLines.forEach(line => {
+              checkNewPage();
+              doc.text(line, leftMargin, yPos);
+              yPos += lineHeight;
+            });
+          } else {
+            // Regular message content
+            try {
+              // Try to parse content with code blocks
+              const parsed = parseContentForExport(msg.content || "");
+              
+              let isInCodeBlock = false;
+              
+              parsed.forEach(item => {
+                if (item.type === 'text') {
+                  if (isInCodeBlock) {
+                    isInCodeBlock = false;
+                    yPos += lineHeight;
+                    checkNewPage();
+                  }
+                  
+                  const lines = splitTextToFitPage(item.content);
+                  lines.forEach(line => {
+                    checkNewPage();
+                    doc.text(line, leftMargin, yPos);
+                    yPos += lineHeight;
+                  });
+                } else if (item.type === 'code') {
+                  // Mark start of code block
+                  yPos += lineHeight / 2;
+                  checkNewPage();
+                  
+                  doc.setFont("courier", "normal");
+                  doc.setFontSize(9);
+                  
+                  const langLabel = item.language ? ` (${item.language})` : '';
+                  doc.text(`----- CODE BLOCK START${langLabel} -----`, leftMargin, yPos);
+                  yPos += lineHeight;
+                  
+                  // Print code content with slight indent
+                  item.content.forEach(line => {
+                    checkNewPage();
+                    const codeLine = `  ${line}`;
+                    const codeLines = splitTextToFitPage(codeLine, 9);
+                    codeLines.forEach(l => {
+                      checkNewPage();
+                      doc.text(l, leftMargin, yPos);
+                      yPos += lineHeight;
+                      checkNewPage();
+                    });
+                  });
+                  
+                  // Mark end of code block
+                  checkNewPage();
+                  doc.text(`----- CODE BLOCK END -----`, leftMargin, yPos);
+                  yPos += lineHeight;
+                  
+                  // Reset font for normal text
+                  doc.setFont("helvetica", "normal");
+                  doc.setFontSize(11);
+                  
+                  isInCodeBlock = true;
+                }
+              });
+            } catch (error) {
+              console.error("Error parsing message for PDF:", error);
+              // Fallback for parsing errors - just add the content directly
+              if (msg.content) {
+                const lines = splitTextToFitPage(msg.content || "");
+                lines.forEach(line => {
+                  checkNewPage();
+                  doc.text(line, leftMargin, yPos);
+                  yPos += lineHeight;
+                });
+              }
+            }
+          }
+        });
+
+        // Save the PDF
+        doc.save(`${thread.name || "Thread"}.pdf`);
         showNotification("PDF file downloaded");
+        
       } catch (error) {
         console.error("PDF generation error:", error);
         showNotification("Error generating PDF: " + error.message);
@@ -4243,6 +4486,7 @@ A: First segment: The car travels at 60 mph for 2 hours, so the distance covered
       const multimodalModels = [
         'accounts/fireworks/models/deepseek-v3', // DeepSeek V3
         'accounts/fireworks/models/llama-v3p3-70b', // Llama 3.3 70B
+        'accounts/fireworks/models/llama-v3p1-8b', // Llama 3.1 8B (added new model here)
         'accounts/fireworks/models/qwen2p5' // Qwen 2.5 models
       ];
       
@@ -4263,8 +4507,18 @@ A: First segment: The car travels at 60 mph for 2 hours, so the distance covered
     }
     
     async function sendMessage(message) {
+      // First get the current streaming setting from localStorage
+      // This ensures we're using the latest toggle state
+      const savedStreamingPref = localStorage.getItem('streamingEnabled');
+      ENABLE_STREAMING = savedStreamingPref !== null ? savedStreamingPref === 'true' : ENABLE_STREAMING;
+      
+      console.log(`Current streaming state: ${ENABLE_STREAMING ? 'enabled' : 'disabled'}`);
+      
       // Check if Perplexity is enabled
       const usePerplexity = localStorage.getItem('usePerplexity') === 'true';
+      
+      // Check if RAG is enabled
+      const useRag = localStorage.getItem('ragEnabled') === 'true';
       
       // Analyze problem complexity if enhanced reasoning is enabled
       if (ENHANCED_REASONING_ENABLED && REASONING_ENHANCEMENT === "adaptive") {
@@ -4323,9 +4577,9 @@ A: First segment: The car travels at 60 mph for 2 hours, so the distance covered
         attachedFilesContainer.style.display = 'none';
       }
       
-      // If we're not using Perplexity, make sure we have a model selected
-      if (!usePerplexity && !MODEL_NAME) {
-        const errorMsg = "Error: Please select a model in the Settings or enable Perplexity.";
+      // If we're not using Perplexity or RAG, make sure we have a model selected
+      if (!usePerplexity && !useRag && !MODEL_NAME) {
+        const errorMsg = "Error: Please select a model in the Settings or enable Perplexity/RAG.";
         addMessageToCurrentThread(errorMsg, "bot");
         console.error(errorMsg);
         return;
@@ -4335,12 +4589,79 @@ A: First segment: The car travels at 60 mph for 2 hours, so the distance covered
       const wordCountRequest = parseWordCountRequest(message);
       
       // Add placeholder message showing we're thinking
-      let placeholderText = usePerplexity ? "Searching the web with Perplexity..." : "Bot is thinking...";
+      let placeholderText = usePerplexity ? "Searching the web with Perplexity..." : 
+                           useRag ? "Searching knowledge base with RAG..." : 
+                           "Bot is thinking...";
       addMessageToCurrentThread(placeholderText, "bot", true);
       const thread = threads.find(t => t.id === currentThreadId);
       const placeholderIndex = thread.messages.length - 1;
 
       try {
+        // If RAG is enabled, try it first
+        if (useRag) {
+          const collectionName = localStorage.getItem('ragCollectionName') || '';
+          
+          try {
+            // Add timestamp to URL to prevent caching
+            const timestamp = new Date().getTime();
+            const cacheBuster = `?t=${timestamp}`;
+            
+            // Call the RAG API
+            const response = await fetch(`/api/rag${cacheBuster}`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({
+                query: message,
+                collectionName: collectionName
+              })
+            });
+            
+            if (!response.ok) {
+              throw new Error(`RAG API error: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            // Format sources if available
+            let formattedAnswer = data.answer;
+            
+            if (data.sources && data.sources.length > 0) {
+              formattedAnswer += "\n\n**Sources:**\n";
+              data.sources.forEach((source, index) => {
+                formattedAnswer += `${index + 1}. ${source.text}\n`;
+              });
+            }
+            
+            // Update the message in the thread
+            thread.messages[placeholderIndex] = {
+              content: formattedAnswer,
+              sender: "bot",
+              isPlaceholder: false,
+              timestamp: new Date(),
+              wordCount: countWords(formattedAnswer),
+              reasoningMethod: "RAG-ENHANCED",
+              thinking: null,
+              answer: formattedAnswer,
+              thinkingWordCount: 0,
+              answerWordCount: countWords(formattedAnswer)
+            };
+            
+            renderCurrentThreadMessages();
+            return; // Early return since we've handled the message
+          } catch (ragError) {
+            console.error("RAG error:", ragError);
+            // If RAG fails, continue with regular processing
+            // Update placeholder message
+            thread.messages[placeholderIndex].content = "RAG search failed, using standard model...";
+            renderCurrentThreadMessages();
+          }
+        }
+
+        // Continue with existing Perplexity and regular API calls...
+        // ... rest of the existing sendMessage function ...
+
         // If Perplexity is enabled, use it instead of the regular model
         if (usePerplexity) {
           console.log("Using Perplexity for this query");
@@ -4440,7 +4761,7 @@ A: First segment: The car travels at 60 mph for 2 hours, so the distance covered
 
         // Check if we should use streaming
         if (ENABLE_STREAMING) {
-          console.log("Using streaming mode for this request");
+          console.log("Using streaming mode with Edge Function");
           
           try {
             // Update the placeholder to indicate streaming
@@ -4449,10 +4770,10 @@ A: First segment: The car travels at 60 mph for 2 hours, so the distance covered
             
             // Prepare to collect the full response
             let fullResponse = "";
-            let eventSource = null;
+            let renderPending = false;
             
-            // First send the initial request to start the stream
-            const initResponse = await fetch(`/api/streaming${cacheBuster}`, {
+            // First send the initial request to start the stream - use the Edge Function endpoint
+            const initResponse = await fetch(`/api/streaming-edge${cacheBuster}`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify(payload)
@@ -4465,9 +4786,6 @@ A: First segment: The car travels at 60 mph for 2 hours, so the distance covered
             // Set up event source for streaming
             const reader = initResponse.body.getReader();
             const decoder = new TextDecoder();
-            
-            // Flag to track if we're still receiving the first parts
-            let isFirstChunks = true;
             
             // Process the stream
             while (true) {
@@ -4487,7 +4805,7 @@ A: First segment: The car travels at 60 mph for 2 hours, so the distance covered
               for (const line of lines) {
                 if (line.startsWith('data: ')) {
                   // Extract the data part
-                  const dataText = line.slice(6);
+                  const dataText = line.slice(6).trim();
                   
                   // Special end marker
                   if (dataText === '[DONE]') {
@@ -4496,7 +4814,14 @@ A: First segment: The car travels at 60 mph for 2 hours, so the distance covered
                   }
                   
                   try {
+                    // Attempt to parse as JSON
                     const data = JSON.parse(dataText);
+                    
+                    // Check for errors from server
+                    if (data.error === true) {
+                      console.error("Streaming error:", data.message);
+                      throw new Error(data.message || "Unknown streaming error");
+                    }
                     
                     // Check for completion
                     if (data.done === true) {
@@ -4504,15 +4829,12 @@ A: First segment: The car travels at 60 mph for 2 hours, so the distance covered
                       continue;
                     }
                     
-                    // Check for errors
-                    if (data.error === true) {
-                      throw new Error(data.message || "Unknown streaming error");
-                    }
-                    
                     // Extract new content
                     if (data.choices && data.choices[0]) {
                       // Get the content delta or content (different APIs may use different formats)
-                      const contentDelta = data.choices[0].delta?.content || data.choices[0].message?.content || "";
+                      const contentDelta = data.choices[0].delta?.content || 
+                                          data.choices[0].message?.content || 
+                                          "";
                       
                       if (contentDelta) {
                         // Add to full response
@@ -4527,15 +4849,40 @@ A: First segment: The car travels at 60 mph for 2 hours, so the distance covered
                           isStreaming: true // Flag as streaming
                         };
                         
-                        // Only render after significant content to avoid re-rendering too often
-                        if (isFirstChunks || fullResponse.length % 20 === 0) {
-                          renderCurrentThreadMessages();
-                          isFirstChunks = false;
+                        // Use requestAnimationFrame for smoother rendering
+                        if (!renderPending) {
+                          renderPending = true;
+                          requestAnimationFrame(() => {
+                            renderCurrentThreadMessages();
+                            renderPending = false;
+                          });
                         }
                       }
                     }
                   } catch (parseError) {
-                    console.warn("Error parsing streaming data:", parseError);
+                    // If not valid JSON, just append it as raw text
+                    if (dataText && dataText !== '') {
+                      console.log("Non-JSON data received:", dataText);
+                      fullResponse += dataText;
+                      
+                      // Update the message with the raw text
+                      thread.messages[placeholderIndex] = {
+                        content: fullResponse,
+                        sender: "bot",
+                        isPlaceholder: false,
+                        timestamp: new Date(),
+                        isStreaming: true
+                      };
+                      
+                      // Use requestAnimationFrame for smoother rendering
+                      if (!renderPending) {
+                        renderPending = true;
+                        requestAnimationFrame(() => {
+                          renderCurrentThreadMessages();
+                          renderPending = false;
+                        });
+                      }
+                    }
                   }
                 }
               }
@@ -4560,7 +4907,7 @@ A: First segment: The car travels at 60 mph for 2 hours, so the distance covered
             // Process bot message to separate thinking and answer parts
             const processed = processBotMessage(fullResponse, REASONING_METHOD);
             
-            // Update with the finalized message
+            // Update with the finalized message (not streaming anymore)
             thread.messages[placeholderIndex] = {
               content: fullResponse,
               sender: "bot",
@@ -5001,15 +5348,20 @@ A: First segment: The car travels at 60 mph for 2 hours, so the distance covered
           tags: ["Powerful", "Latest", "Versatile"],
           description: "Latest Llama model with enhanced reasoning and broad capabilities."
         },
+        "accounts/fireworks/models/llama-v3p1-8b-instruct": {
+          name: "Llama 3.1 8B",
+          tags: ["Fast", "Efficient", "Compact"],
+          description: "Smaller Llama model offering good balance between performance and speed."
+        },
         "accounts/fireworks/models/mixtral-8x22b-instruct": {
           name: "Mixtral 8x22B",
           tags: ["MoE", "Advanced", "Powerful"],
           description: "Mixture of Experts model with excellent reasoning and knowledge capabilities."
         },
-        "accounts/fireworks/models/mistral-small-24b-instruct-2501": {
-          name: "Mistral Small 24B",
-          tags: ["Efficient", "Balanced", "Versatile"],
-          description: "Balanced model offering good performance across a wide range of tasks."
+        "accounts/fireworks/models/phi-3-vision-128k-instruct": {
+          name: "Phi-3 Vision",
+          tags: ["Vision", "Multimodal", "Latest"],
+          description: "Microsoft's Phi-3 model with vision capabilities for analyzing images and text together."
         }
       };
       
@@ -5416,6 +5768,14 @@ Separate your steps with periods. Write your final answer after the #### separat
         const prevEnhanced = ENHANCED_REASONING_ENABLED;
         const prevEnhancementType = REASONING_ENHANCEMENT;
         
+        // Get streaming setting directly from the toggle in the modal
+        const streamingToggle = document.getElementById('streamingToggle');
+        if (streamingToggle) {
+          ENABLE_STREAMING = streamingToggle.checked;
+          localStorage.setItem('streamingEnabled', ENABLE_STREAMING.toString());
+          console.log(`Streaming preference saved: ${ENABLE_STREAMING}`);
+        }
+        
         // Get model from select
         try {
           const modelSelect = document.getElementById("modelSelect");
@@ -5808,10 +6168,18 @@ Separate your steps with periods. Write your final answer after the #### separat
         await loadPersistedSettings();
         console.log("Settings loaded");
         
+        // Make sure we load streaming preference correctly
+        const savedStreamingPref = localStorage.getItem('streamingEnabled');
+        if (savedStreamingPref !== null) {
+          ENABLE_STREAMING = savedStreamingPref === 'true';
+          console.log(`Loaded streaming preference: ${ENABLE_STREAMING ? 'enabled' : 'disabled'}`);
+        }
+        
         // Initialize UI components
         const textarea = document.getElementById('userInput');
         const sendBtn = document.getElementById('sendBtn');
         const webSearchBtn = document.getElementById('webSearchBtn');
+        const ragBtn = document.getElementById('ragBtn');
         
         if (textarea) {
           textarea.style.height = '24px';
@@ -5859,12 +6227,20 @@ Separate your steps with periods. Write your final answer after the #### separat
           }
         }
         
+        // Initialize RAG button
+        if (ragBtn) {
+          initRagButton();
+        }
+        
         // Initialize Perplexity button
         initWebSearch();
         console.log("Web search toggle initialized");
         
         // Initialize streaming toggle in settings
         setTimeout(addStreamingToggleToSettings, 1000);
+        
+        // Initialize RAG functionality
+        setTimeout(initRagFunctionality, 1000);
         
         // Initialize the rest of the application
         await init();
@@ -6175,14 +6551,12 @@ Separate your steps with periods. Write your final answer after the #### separat
       localStorage.setItem('webSearchEnabled', enableWebSearch.toString());
       localStorage.setItem('usePerplexity', enableWebSearch.toString());
       
-      // Update button appearance with transition
+      // Update button appearance with active class
       if (enableWebSearch) {
-        btn.style.backgroundColor = 'var(--accent-primary)';
-        btn.style.color = 'white';
+        btn.classList.add('active');
         btn.title = "Web search is enabled (click to disable)";
       } else {
-        btn.style.backgroundColor = 'var(--bg-component)';
-        btn.style.color = 'var(--text-secondary)';
+        btn.classList.remove('active');
         btn.title = "Web search is disabled (click to enable)";
       }
       
@@ -6224,6 +6598,159 @@ Separate your steps with periods. Write your final answer after the #### separat
       if (helperText) {
         helperText.textContent = "Maximum length of the response (1-8192 tokens for DeepSeek models).";
       }
+    }
+
+    /***********************
+     * Perplexity Integration
+     ***********************/
+    
+    // Function to query Perplexity
+    async function queryPerplexity(question, messageDiv, thinkingIndicator) {
+      const answerDiv = messageDiv.querySelector('.message-content');
+      if (!answerDiv) {
+        console.error("Could not find answerDiv for message");
+        return { error: "Internal UI error", answer: "Could not display response.", sources: [] };
+      }
+      
+      // Clear previous content and show thinking indicator
+      answerDiv.innerHTML = ''; 
+      thinkingIndicator.style.display = 'flex';
+      let accumulatedAnswer = '';
+      let finalData = null;
+
+      try {
+        const timestamp = new Date().getTime();
+        const cacheBuster = `?t=${timestamp}`;
+        
+        console.log("Querying Perplexity (streaming) for:", question);
+        
+        const response = await fetch(`/api/perplexity${cacheBuster}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "text/event-stream" // Indicate we want a stream
+          },
+          body: JSON.stringify({ query: question, stream: true }) // Add stream flag
+        });
+        
+        thinkingIndicator.style.display = 'none'; // Hide thinking once stream starts
+
+        if (!response.ok) {
+          let errorMessage = `Status: ${response.status}`;
+          try {
+            const errorData = await response.json(); // Try to get JSON error first
+            errorMessage = errorData.error || errorData.message || errorMessage;
+          } catch (e) {
+            errorMessage = await response.text() || errorMessage; // Fallback to text error
+          }
+          throw new Error(`Perplexity API error: ${errorMessage}`);
+        }
+
+        // Check if the response is actually a stream
+        if (!response.headers.get("content-type")?.includes("text/event-stream")) {
+           // Handle non-streaming response (optional fallback)
+           console.warn("Received non-streaming response from Perplexity API");
+           const data = await response.json();
+           finalData = processPerplexityResponseData(data); // Use the helper function
+           answerDiv.innerHTML = marked.parse(finalData.answer); // Use marked.parse here
+           hljs.highlightAll(); 
+           return finalData;
+        }
+
+        // Process the stream
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          
+          // Process buffer line by line for SSE events
+          let lines = buffer.split('\\n');
+          buffer = lines.pop(); // Keep incomplete line in buffer
+
+          for (const line of lines) {
+             if (line.startsWith('data: ')) {
+                const dataString = line.substring(6).trim();
+                if (dataString === '[DONE]') {
+                    console.log("Stream finished.");
+                    // Optionally process finalData if backend sends summary
+                    break; 
+                }
+                try {
+                    const chunk = JSON.parse(dataString);
+                    if (chunk.answer_chunk) { // Assuming backend sends chunks like { answer_chunk: "..." }
+                        accumulatedAnswer += chunk.answer_chunk;
+                        answerDiv.innerHTML = marked.parse(accumulatedAnswer + '▍'); // Add cursor
+                        hljs.highlightAll(); // Re-highlight as content updates
+                    } else if (chunk.answer && chunk.sources !== undefined) { 
+                       // Handle potential final message with full answer and sources
+                       console.log("Received final data object in stream:", chunk);
+                       finalData = chunk; 
+                       accumulatedAnswer = finalData.answer; // Ensure final answer is set
+                    }
+                 } catch (e) {
+                    console.warn("Could not parse stream chunk:", dataString, e);
+                 }
+             }
+          }
+        }
+        
+        // Final cleanup after stream ends
+        answerDiv.innerHTML = marked.parse(accumulatedAnswer); // Remove cursor
+        hljs.highlightAll(); 
+        
+        console.log("Final accumulated answer:", accumulatedAnswer);
+        // Return the final structured data if available, otherwise construct from accumulated answer
+        return finalData || { answer: accumulatedAnswer, sources: [], metadata: {} };
+
+      } catch (error) {
+        console.error("Perplexity query error (streaming):", error);
+        thinkingIndicator.style.display = 'none';
+        
+        let errorMessage = error.message;
+        if (error.name === "AbortError") {
+          errorMessage = "Request to Perplexity timed out.";
+        } else if (error.message.includes("Failed to fetch")) {
+          errorMessage = "Could not connect to the Perplexity API.";
+        }
+        
+        answerDiv.innerHTML = `<p style="color: var(--error);">Error accessing Perplexity: ${errorMessage}. Please try again later or disable web search.</p>`;
+        return { 
+          error: errorMessage,
+          answer: `Error: ${errorMessage}`, 
+          sources: [] 
+        };
+      }
+    }
+
+    // Helper function to process Perplexity response data (used for fallback and maybe stream end)
+    function processPerplexityResponseData(data) {
+      if (!data) {
+        throw new Error("Empty response from Perplexity API");
+      }
+      if (data.answer !== undefined) { // Primary expected format
+        return {
+          answer: data.answer,
+          sources: data.sources || [],
+          metadata: data.metadata || {}
+        };
+      }
+      if (data.text) { // Alternate format
+        return {
+          answer: data.text,
+          sources: data.citations || data.sources || [],
+          metadata: data.metadata || {}
+        };
+      }
+      if (typeof data === 'string') { // Direct string response
+        return { answer: data, sources: [], metadata: {} };
+      }
+      console.warn("Unrecognized Perplexity response format:", data);
+      throw new Error("Invalid response format from Perplexity API");
     }
 
     /***********************
@@ -6383,12 +6910,10 @@ Separate your steps with periods. Write your final answer after the #### separat
       
       // Update button appearance
       if (enableWebSearch) {
-        btn.style.backgroundColor = 'var(--accent-primary)';
-        btn.style.color = 'white';
+        btn.classList.add('active');
         btn.title = "Web search is enabled (click to disable)";
       } else {
-        btn.style.backgroundColor = 'var(--bg-component)';
-        btn.style.color = 'var(--text-secondary)';
+        btn.classList.remove('active');
         btn.title = "Web search is disabled (click to enable)";
       }
       
@@ -6431,9 +6956,135 @@ Separate your steps with periods. Write your final answer after the #### separat
         if (streamingToggle) {
           streamingToggle.addEventListener('change', () => {
             ENABLE_STREAMING = streamingToggle.checked;
+            // Save to localStorage immediately
             localStorage.setItem('streamingEnabled', ENABLE_STREAMING.toString());
+            console.log(`Streaming preference saved: ${ENABLE_STREAMING}`);
             showNotification(`Streaming mode ${ENABLE_STREAMING ? 'enabled' : 'disabled'}`);
           });
+        }
+      }
+    }
+
+    /***********************
+     * RAG Functionality
+     ***********************/
+    function initRagFunctionality() {
+      // Add RAG toggle to settings modal
+      const parametersTab = document.getElementById('parametersTab');
+      if (!parametersTab) return;
+      
+      // Create RAG toggle section
+      const ragToggleSection = document.createElement('div');
+      ragToggleSection.className = 'web-search-toggle';
+      ragToggleSection.innerHTML = `
+        <label class="toggle-label">
+          <input type="checkbox" id="ragToggle">
+          <span class="toggle-text">Enable MongoDB RAG</span>
+        </label>
+        <div id="ragOptions" style="margin-top: 10px; display: none;">
+          <input type="text" id="collectionName" placeholder="Collection name (optional)" 
+                 style="width: 100%; padding: 8px; margin-bottom: 8px; background: var(--bg-component); color: var(--text-primary); border: 1px solid var(--border-medium); border-radius: var(--radius-sm);">
+        </div>
+      `;
+      
+      // Find where to insert it - after streaming toggle
+      const streamingToggle = document.querySelector('.web-search-toggle');
+      if (streamingToggle) {
+        parametersTab.insertBefore(ragToggleSection, streamingToggle.nextSibling);
+      } else {
+        // If streaming toggle not found, insert before temperature slider
+        const insertBeforeElement = document.querySelector('#parametersTab label[for="temp"]');
+        if (insertBeforeElement) {
+          parametersTab.insertBefore(ragToggleSection, insertBeforeElement);
+        }
+      }
+      
+      // Add event listener to the checkbox
+      const ragToggle = document.getElementById('ragToggle');
+      const ragOptions = document.getElementById('ragOptions');
+      
+      if (ragToggle && ragOptions) {
+        // Load saved preference from main toggle button
+        const ragEnabled = localStorage.getItem('ragEnabled') === 'true';
+        ragToggle.checked = ragEnabled;
+        ragOptions.style.display = ragEnabled ? 'block' : 'none';
+        
+        // Load saved collection name
+        const savedCollection = localStorage.getItem('ragCollectionName');
+        if (savedCollection && document.getElementById('collectionName')) {
+          document.getElementById('collectionName').value = savedCollection;
+        }
+        
+        // Toggle RAG options visibility and sync with main button
+        ragToggle.addEventListener('change', () => {
+          const isEnabled = ragToggle.checked;
+          ragOptions.style.display = isEnabled ? 'block' : 'none';
+          localStorage.setItem('ragEnabled', isEnabled.toString());
+          
+          // Sync with main RAG button
+          enableRag = isEnabled;
+          const ragBtn = document.getElementById('ragBtn');
+          if (ragBtn) {
+            if (isEnabled) {
+              ragBtn.classList.add('active');
+            } else {
+              ragBtn.classList.remove('active');
+            }
+          }
+          
+          showNotification(`MongoDB RAG ${isEnabled ? 'enabled' : 'disabled'}`);
+        });
+        
+        // Save collection name when it changes
+        const collectionNameInput = document.getElementById('collectionName');
+        if (collectionNameInput) {
+          collectionNameInput.addEventListener('change', () => {
+            localStorage.setItem('ragCollectionName', collectionNameInput.value);
+          });
+        }
+      }
+    }
+
+    // Variables for RAG
+    let enableRag = false;
+    
+    // Toggle RAG function
+    function toggleRag() {
+      enableRag = !enableRag;
+      localStorage.setItem('ragEnabled', enableRag.toString());
+      
+      // Update button appearance
+      const ragBtn = document.getElementById('ragBtn');
+      if (ragBtn) {
+        if (enableRag) {
+          ragBtn.classList.add('active');
+          showNotification('MongoDB RAG enabled');
+        } else {
+          ragBtn.classList.remove('active');
+          showNotification('MongoDB RAG disabled');
+        }
+      }
+      
+      // Sync with settings panel checkbox
+      const ragToggle = document.getElementById('ragToggle');
+      const ragOptions = document.getElementById('ragOptions');
+      if (ragToggle && ragOptions) {
+        ragToggle.checked = enableRag;
+        ragOptions.style.display = enableRag ? 'block' : 'none';
+      }
+    }
+    
+    // Initialize RAG button
+    function initRagButton() {
+      const ragBtn = document.getElementById('ragBtn');
+      if (ragBtn) {
+        ragBtn.addEventListener('click', toggleRag);
+        
+        // Load saved preference
+        const savedRag = localStorage.getItem('ragEnabled') === 'true';
+        if (savedRag) {
+          enableRag = true;
+          ragBtn.classList.add('active');
         }
       }
     }
