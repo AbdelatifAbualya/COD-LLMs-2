@@ -1,10 +1,14 @@
 {
-  "name": "chatbot-project",
+  "name": "gpt4-reasoning-studio",
   "version": "1.0.0",
+  "description": "A reasoning chatbot powered by GPT-4.1 with tool-use capabilities",
   "scripts": {
     "start": "vercel dev"
   },
   "dependencies": {
-    "node-fetch": "^2.6.1"
+    "node-fetch": "^2.6.9"
+  },
+  "engines": {
+    "node": ">=18.x"
   }
 }
